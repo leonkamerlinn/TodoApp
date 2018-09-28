@@ -1,4 +1,4 @@
-package com.kamerlin.leon.todoapp.ui.main;
+package com.kamerlin.leon.todoapp.ui.activity.main;
 
 import android.app.Activity;
 
