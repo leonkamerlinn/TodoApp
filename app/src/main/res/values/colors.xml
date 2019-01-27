@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorPrimary">@color/material_deeppurple500</color>
+    <color name="colorPrimaryDark">@color/material_deeppurple700</color>
+    <color name="colorAccent">@color/material_teal200</color>
+    <color name="colorSelected">@color/material_deeppurple50</color>
+    <color name="colorUnselected">@color/material_white</color>
+    <color name="colorFocus">@color/material_deeppurple200</color>
 </resources>
