@@ -1,0 +1,393 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="model"
+            type="com.kamerlin.leon.todoapp.ui.activity.task.TaskViewModel" />
+    </data>
+
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@color/colorPrimaryDark"
+            android:id="@+id/appbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.Toolbar
+                android:background="@color/colorPrimaryDark"
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize" />
+
+            <!-- Task name -->
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/taskNameEditText"
+                    android:singleLine="true"
+                    android:backgroundTint="@color/colorAccent"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textCursorDrawable="@drawable/color_cursor"
+                    android:textColor="@color/material_white"
+                    android:layout_width="match_parent"
+                    android:text="@{model.taskName}"
+                    app:setError="@{model.taskNameError}"
+                    android:onTextChanged="@{(text, start, before, count) -> model.setTaskName(text.toString)}"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/task_name" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Task description -->
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/TextLabel"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginBottom="25dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/taskDescriptionEditText"
+                    android:backgroundTint="@color/colorAccent"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textCursorDrawable="@drawable/color_cursor"
+                    android:textColor="@color/material_white"
+                    android:layout_width="match_parent"
+                    android:text="@{model.taskDescription}"
+                    android:onTextChanged="@{(text, start, before, count) -> model.setTaskDescription(text.toString)}"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/description" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+
+        <!-- Content -->
+
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Due date -->
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/dueDateLinearLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="?attr/actionBarSize"
+                    android:orientation="horizontal">
+
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="?attr/actionBarSize"
+                        android:layout_height="?attr/actionBarSize"
+                        android:background="@android:color/transparent"
+                        android:tint="@color/grey_40"
+                        app:srcCompat="@drawable/ic_event" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="?attr/actionBarSize"
+                            android:text="@string/due_date"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/grey_80"
+                            android:textStyle="bold"/>
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_large"
+                                android:text="@{model.dueDate}"
+                                android:hint="@string/not_set"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                android:textColor="@color/grey_40" />
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                app:showView="@{model.showDueDateTime}"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="10dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_large"
+                                android:text="@string/et"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                android:textColor="@color/grey_40" />
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                app:showView="@{model.showDueDateTime}"
+                                android:id="@+id/dueDatetime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_large"
+                                android:text="@{model.dueDateTime}"
+                                android:hint="@string/not_set"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                android:textColor="@color/grey_40" />
+
+                        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+                        <com.google.android.material.button.MaterialButton
+                            android:onClick="@{() -> model.unset()}"
+                            style="@style/Widget.MaterialComponents.Button"
+                            app:showView="@{model.showUnsetButton}"
+                            android:id="@+id/unset"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/unset"/>
+
+
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <!-- Remainder -->
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    app:showView="@{model.showReminder}"
+                    android:id="@+id/reminderLinearLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="?attr/actionBarSize"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="?attr/actionBarSize"
+                        android:layout_height="?attr/actionBarSize"
+                        android:background="@android:color/transparent"
+                        android:tint="@color/grey_40"
+                        app:srcCompat="@drawable/ic_update_black_24dp" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="?attr/actionBarSize"
+                            android:text="@string/reminder"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/grey_80"
+                            android:textStyle="bold"/>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/reminderTextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/spacing_large"
+                            android:hint="@string/none"
+                            android:text="@{model.reminder}"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                            android:textColor="@color/grey_40" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <!-- Priority -->
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/priorityLinearLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="?attr/actionBarSize"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="?attr/actionBarSize"
+                        android:layout_height="?attr/actionBarSize"
+                        android:background="@android:color/transparent"
+                        android:tint="@color/grey_40"
+                        app:srcCompat="@drawable/ic_low_priority_black_24dp" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="?attr/actionBarSize"
+                            android:text="@string/priority"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/grey_80"
+                            android:textStyle="bold"/>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/spacing_large"
+                            android:text="@{model.priority}"
+                            android:hint="@string/none"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                            android:textColor="@color/grey_40" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <!-- Category -->
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/categoryLinearLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="?attr/actionBarSize"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        app:setMaterialColor="@{model.materialColor}"
+                        android:layout_width="?attr/actionBarSize"
+                        android:layout_height="?attr/actionBarSize"
+                        android:background="@android:color/transparent"
+                        android:tint="@color/grey_40"
+                        app:srcCompat="@drawable/menu_circle_icon" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="?attr/actionBarSize"
+                            android:text="@string/category"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/grey_80"
+                            android:textStyle="bold"/>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/spacing_large"
+                            android:text="@{model.category}"
+                            android:hint="@string/none"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                            android:textColor="@color/grey_40" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <!-- Completed -->
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="?attr/actionBarSize"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatCheckBox
+                        android:id="@+id/complete"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textStyle="bold"
+                        android:text="@string/completed"
+                        android:checked="@{model.isCompleted}"
+                        android:onCheckedChanged="@{(checkbox, checked) -> model.setIsCompleted(checked)}"
+                        android:layout_marginStart="13dp"
+                        android:padding="15dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <!-- Favorite -->
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="?attr/actionBarSize"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatCheckBox
+                        android:id="@+id/favorite"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textStyle="bold"
+                        android:checked="@{model.isFavorite}"
+                        android:onCheckedChanged="@{(checkbox, checked) -> model.setIsFavorite(checked)}"
+                        android:text="@string/favorite"
+                        android:layout_marginStart="13dp"
+                        android:padding="15dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </ScrollView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:onClick="@{(view) -> model.insertOrUpdateTask()}"
+            android:id="@+id/floatingActionButton"
+            android:background="@color/colorAccent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_done_white_24dp"
+            app:layout_anchor="@id/appbar_layout"
+            app:layout_anchorGravity="bottom|right|end" />
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>
+

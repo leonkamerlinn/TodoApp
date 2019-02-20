@@ -22,13 +22,14 @@ import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import com.kamerlin.leon.todoapp.db.dao.CategoryDao;
-import com.kamerlin.leon.todoapp.db.dao.TaskDao;
-import com.kamerlin.leon.todoapp.db.pojo.Category;
-import com.kamerlin.leon.todoapp.db.pojo.Task;
+import com.kamerlin.leon.todoapp.db.category.CategoryDao;
+import com.kamerlin.leon.todoapp.db.task.TaskDao;
+import com.kamerlin.leon.todoapp.db.category.Category;
+import com.kamerlin.leon.todoapp.db.task.Task;
 
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -39,9 +40,10 @@ import io.reactivex.schedulers.Schedulers;
  * The fact that this has very few comments emphasizes its coolness.
  */
 
-@Database(entities = {Category.class, Task.class}, version = 16)
+@Database(entities = {Category.class, Task.class}, version = 1)
+@TypeConverters(DateConverter.class)
 public abstract class TodoRoomDatabase extends RoomDatabase {
-    public static final String DATABASE_NAME = "todo_database";
+    public static final String DATABASE_NAME = "todo_database4";
 
     public abstract CategoryDao categoryDao();
     public abstract TaskDao taskDao();
@@ -49,7 +51,7 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
     // marking the instance as volatile to ensure atomic access to the variable
     private static volatile TodoRoomDatabase INSTANCE;
 
-    static TodoRoomDatabase getInstance(final Context context) {
+    public static TodoRoomDatabase getInstance(final Context context) {
         if (INSTANCE == null) {
             synchronized (TodoRoomDatabase.class) {
                 if (INSTANCE == null) {
@@ -58,7 +60,7 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
                             // Migration is not part of this codelab.
                             .fallbackToDestructiveMigration()
                             .addCallback(sRoomDatabaseCallback)
-                            .addMigrations(MIGRATION_15_16)
+                            .addMigrations(MIGRATION_1_2)
                             .build();
                 }
             }
@@ -66,17 +68,26 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
         return INSTANCE;
     }
 
-    private static final Migration MIGRATION_15_16 = new Migration(15, 16) {
+    private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            Observable.fromCallable(() -> {
-                INSTANCE.categoryDao().deleteAndPopulate();
-                return true;
-            })
-                    .subscribeOn(Schedulers.io())
-                    .subscribe();
+            populateDatabase();
         }
     };
+
+    private static void populateDatabase() {
+        Observable.fromCallable(() -> {
+
+            INSTANCE.runInTransaction(() -> {
+                INSTANCE.categoryDao().deleteAndPopulate();
+                INSTANCE.taskDao().deleteAndPopulate();
+            });
+
+            return true;
+        })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
+    }
 
     /**
      * Override the onOpen method to populate the database.
@@ -90,19 +101,13 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
         @Override
         public void onOpen(@NonNull SupportSQLiteDatabase db) {
             super.onOpen(db);
-
+            //populateDatabase();
         }
 
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
-            Observable.fromCallable(() -> {
-                INSTANCE.categoryDao().deleteAndPopulate();
-                return true;
-            })
-                    .subscribeOn(Schedulers.io())
-                    .subscribe();
-
+            populateDatabase();
         }
     };
 

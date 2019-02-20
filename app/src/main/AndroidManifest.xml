@@ -21,9 +21,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.activity.task.TaskActivity"
+            android:theme="@style/Theme.NoActionBar"/>
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+
+        <service android:name=".db.category.CategoryService" android:enabled="true" />
+        <service android:name=".db.task.TaskService" android:enabled="true" />
     </application>
 
 </manifest>

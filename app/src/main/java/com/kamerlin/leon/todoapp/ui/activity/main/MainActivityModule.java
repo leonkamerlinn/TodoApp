@@ -2,7 +2,8 @@ package com.kamerlin.leon.todoapp.ui.activity.main;
 
 import android.app.Activity;
 
-import com.kamerlin.leon.todoapp.application.ApplicationModule;
+import androidx.lifecycle.ViewModelProviders;
+
 import com.kamerlin.leon.todoapp.di.scope.ActivityScoped;
 
 import dagger.Binds;
@@ -20,4 +21,11 @@ public abstract class MainActivityModule {
     abstract Activity provideActivity(MainActivity mainActivity);
 
 
+    @Provides
+    @ActivityScoped
+    static MainViewModel provideMainViewModel(MainActivity activity, MainViewModelFactory mainViewModelFactory) {
+
+        return ViewModelProviders.of(activity, mainViewModelFactory).get(MainViewModel.class);
+
+    }
 }

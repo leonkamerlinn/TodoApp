@@ -1,9 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">@color/material_deeppurple500</color>
-    <color name="colorPrimaryDark">@color/material_deeppurple700</color>
-    <color name="colorAccent">@color/material_teal200</color>
+    <color name="colorPrimary">@color/material_indigo500</color>
+    <color name="colorPrimaryDark">@color/material_indigo700</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimaryLight">#1E88E5</color>
+    <color name="colorAccentDark">#F50057</color>
+    <color name="colorAccentLight">#FF80AB</color>
     <color name="colorSelected">@color/material_deeppurple50</color>
     <color name="colorUnselected">@color/material_white</color>
     <color name="colorFocus">@color/material_deeppurple200</color>
+
+
+    <color name="overlay_dark_10">#1A000000</color>
+    <color name="overlay_dark_20">#33000000</color>
+    <color name="overlay_dark_30">#4D000000</color>
+    <color name="overlay_dark_40">#66000000</color>
+    <color name="overlay_dark_50">#80000000</color>
+    <color name="overlay_dark_60">#99000000</color>
+    <color name="overlay_dark_70">#B3000000</color>
+    <color name="overlay_dark_80">#CC000000</color>
+    <color name="overlay_dark_90">#E6000000</color>
+
+    <color name="overlay_light_10">#1AFFFFFF</color>
+    <color name="overlay_light_20">#33FFFFFF</color>
+    <color name="overlay_light_30">#4DFFFFFF</color>
+    <color name="overlay_light_40">#66FFFFFF</color>
+    <color name="overlay_light_50">#8FFFFFF0</color>
+    <color name="overlay_light_60">#99FFFFFF</color>
+    <color name="overlay_light_70">#B3FFFFFF</color>
+    <color name="overlay_light_80">#CCFFFFFF</color>
+    <color name="overlay_light_90">#E6FFFFFF</color>
+
+    <color name="grey_3">#f7f7f7</color>
+    <color name="grey_5">#f2f2f2</color>
+    <color name="grey_10">#e6e6e6</color>
+    <color name="grey_20">#cccccc</color>
+    <color name="grey_40">#999999</color>
+    <color name="grey_60">#666666</color>
+    <color name="grey_80">#37474F</color>
+    <color name="grey_90">#263238</color>
+    <color name="grey_95">#1a1a1a</color>
+    <color name="grey_100_">#0d0d0d</color>
+
+
+
+
+
+
+
+    <color name="grey_50">#FAFAFA</color>
+    <color name="grey_100">#F5F5F5</color>
+    <color name="grey_200">#EEEEEE</color>
+    <color name="grey_300">#E0E0E0</color>
+    <color name="grey_400">#BDBDBD</color>
+    <color name="grey_500">#9E9E9E</color>
+    <color name="grey_600">#757575</color>
+    <color name="grey_700">#616161</color>
+    <color name="grey_800">#424242</color>
+    <color name="grey_900">#212121</color>
+    <color name="grey_1000">#1a1a1a</color>
+
+
+    <!--for random color generator -->
+    <array name="mdcolor_random">
+        <item type="color">#e91e63</item>
+        <item type="color">#9c27b0</item>
+        <item type="color">#673ab7</item>
+        <item type="color">#E53935</item>
+        <item type="color">#5677fc</item>
+        <item type="color">#689F38</item>
+        <item type="color">#03a9f4</item>
+        <item type="color">#00bcd4</item>
+        <item type="color">#009688</item>
+        <item type="color">#259b24</item>
+        <item type="color">#ff5722</item>
+        <item type="color">#795548</item>
+        <item type="color">#607d8b</item>
+        <item type="color">#ff9800</item>
+    </array>
+
+
 </resources>

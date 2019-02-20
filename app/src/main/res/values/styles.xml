@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
     </style>
 
     <!-- ListView related themes -->
@@ -25,13 +26,44 @@
         <item name="android:background">?android:attr/listDivider</item>
     </style>
 
-    <style name="TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="android:paddingBottom">8dp</item>
+
+
+
+    <style name="Theme.MaterialComponents.Light.ActionModeBlue" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
+        <item name="android:actionModeBackground">@color/colorPrimary</item>
+    </style>
+
+    <style name="Theme.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+        <item name="android:actionModeBackground">@color/colorPrimary</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
 
-    <style name="Theme.MaterialComponents.Light.ActionModeBlue" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <item name="android:actionModeBackground">@color/design_default_color_primary</item>
+
+    <!--style for ripple library-->
+    <style name="RippleStyleWhite">
+
     </style>
+
+    <style name="RippleStyleBlack" parent="RippleStyleWhite">
+        <item name="mrl_rippleColor">#8096989A</item>
+    </style>
+
+    <style name="TextLabel" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <!-- Hint color and label color in FALSE state -->
+        <item name="android:textColorHint">@color/colorAccent</item>
+        <!-- Label color in TRUE state and bar color FALSE and TRUE State -->
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorControlNormal">@color/colorAccent</item>
+        <item name="colorControlActivated">@color/colorAccent</item>
+        <item name="android:colorControlHighlight">@color/colorAccent</item>
+        <item name="boxBackgroundColor">@color/colorPrimary</item>
+        <item name="android:textColor">@color/material_white</item>
+
+    </style>
+
+
 
 </resources>

@@ -2,7 +2,10 @@ package com.kamerlin.leon.todoapp.application;
 
 import android.app.Application;
 
-import com.kamerlin.leon.todoapp.di.ActivityBindingModule;
+import com.kamerlin.leon.todoapp.di.modules.ActivityBindingModule;
+import com.kamerlin.leon.todoapp.di.modules.ApplicationBindingModule;
+import com.kamerlin.leon.todoapp.di.modules.FragmentDialogBindingModule;
+import com.kamerlin.leon.todoapp.di.modules.ServiceBindingModule;
 
 import javax.inject.Singleton;
 
@@ -16,7 +19,7 @@ import dagger.android.support.AndroidSupportInjectionModule;
  */
 
 @Singleton
-@Component(modules = {ApplicationModule.class, ActivityBindingModule.class, AndroidSupportInjectionModule.class})
+@Component(modules = {ApplicationBindingModule.class, ActivityBindingModule.class, ServiceBindingModule.class, FragmentDialogBindingModule.class, AndroidSupportInjectionModule.class})
 public interface ApplicationComponent extends AndroidInjector<MainApplication> {
 
     @Component.Builder
