@@ -15,6 +15,7 @@ import androidx.room.Update;
 import java.util.Calendar;
 import java.util.List;
 
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
@@ -259,4 +260,17 @@ public abstract class TaskDao {
         insert(to);
 
     }
+    @Query("SELECT * FROM task_table WHERE task_id = :id")
+    public abstract Maybe<Task> getTaskByIdMaybe(long id);
+
+    @Query("SELECT * FROM task_table WHERE task_id = :id")
+    public abstract Task getTaskById(long id);
+
+    @Query("SELECT COUNT(task_id) FROM task_table WHERE task_id = :id")
+    public abstract Single<Integer> getNumberOfTasksByIdSingle(long id);
+
+
+    @Query("SELECT COUNT(task_id) FROM task_table WHERE task_id = :id")
+    public abstract Integer getNumberOfTasksById(long id);
+
 }
