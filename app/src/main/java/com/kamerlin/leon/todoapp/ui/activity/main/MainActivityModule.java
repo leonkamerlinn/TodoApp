@@ -2,9 +2,15 @@ package com.kamerlin.leon.todoapp.ui.activity.main;
 
 import android.app.Activity;
 
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.kamerlin.leon.todoapp.R;
+import com.kamerlin.leon.todoapp.databinding.ActivityMainBinding;
+import com.kamerlin.leon.todoapp.databinding.ActivityTaskBinding;
 import com.kamerlin.leon.todoapp.di.scope.ActivityScoped;
+import com.kamerlin.leon.todoapp.ui.activity.task.TaskActivity;
+import com.kamerlin.leon.todoapp.ui.activity.task.TaskViewModel;
 
 import dagger.Binds;
 import dagger.Module;
@@ -27,5 +33,14 @@ public abstract class MainActivityModule {
 
         return ViewModelProviders.of(activity, mainViewModelFactory).get(MainViewModel.class);
 
+    }
+
+    @Provides
+    @ActivityScoped
+    static ActivityMainBinding provideViewBinding(MainActivity activity, MainViewModel viewModel) {
+        ActivityMainBinding binding = DataBindingUtil.setContentView(activity, R.layout.activity_main);
+        binding.setLifecycleOwner(activity);
+        binding.setModel(viewModel);
+        return binding;
     }
 }

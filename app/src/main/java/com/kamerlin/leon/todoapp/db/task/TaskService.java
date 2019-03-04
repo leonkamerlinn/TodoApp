@@ -18,10 +18,13 @@ public class TaskService extends DaggerIntentService {
     public static final String ACTION_INSERT = TAG + ".INSERT";
     public static final String ACTION_UPDATE = TAG + ".UPDATE";
     public static final String ACTION_DELETE = TAG + ".DELETE";
+    public static final String ACTION_SWAP = TAG + ".SWAP";
     public static final String ACTION_DELETE_AND_POPULATE = TAG + ".DELETE_AND_POPULATE";
 
     // Intent extras
     private static final String EXTRA_TASK = "extra_task";
+    private static final String EXTRA_TASK_FROM = "extra_task_from";
+    private static final String EXTRA_TASK_TO = "extra_task_to";
 
 
     @Inject
@@ -30,6 +33,14 @@ public class TaskService extends DaggerIntentService {
 
     public TaskService() {
         super(TAG);
+    }
+
+    public static void swapTask(Context context, Task from, Task to) {
+        Intent intent = new Intent(context, TaskService.class);
+        intent.setAction(ACTION_SWAP);
+        intent.putExtra(EXTRA_TASK_FROM, from);
+        intent.putExtra(EXTRA_TASK_TO, to);
+        context.startService(intent);
     }
 
     @Override
@@ -44,7 +55,16 @@ public class TaskService extends DaggerIntentService {
             handleUpdate(intent);
         } else if (ACTION_DELETE_AND_POPULATE.equals(action)) {
             handleDeleteAndPopulate();
+        } else if (ACTION_SWAP.equals(action)) {
+            handleSwap(intent);
         }
+    }
+
+    private void handleSwap(Intent intent) {
+        Task from = intent.getParcelableExtra(EXTRA_TASK_FROM);
+        Task to = intent.getParcelableExtra(EXTRA_TASK_TO);
+
+        taskDao.swapTasks(from, to);
     }
 
 

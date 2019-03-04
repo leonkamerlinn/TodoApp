@@ -1,34 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
         <data>
                 <variable
                     name="model"
                     type="com.kamerlin.leon.todoapp.ui.activity.main.MainViewModel" />
         </data>
-
-        <androidx.drawerlayout.widget.DrawerLayout
-            android:id="@+id/drawerLayout"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-                <FrameLayout
-                    android:id="@+id/contentFrame"
+
+                <androidx.drawerlayout.widget.DrawerLayout
+                    android:id="@+id/drawerLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent">
+
+                        <FrameLayout
+                            android:id="@+id/contentFrame"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
 
 
-                <ListView
-                    android:background="@android:color/white"
-                    android:listSelector="@drawable/item_ripple_effect"
-                    android:id="@+id/navigationListView"
-                    android:layout_gravity="start"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:dividerHeight="0dp"
-                    android:divider="@null"
-                    android:choiceMode="singleChoice" />
+                        <ListView
+                            android:background="@android:color/white"
+                            android:listSelector="@drawable/item_ripple_effect"
+                            android:id="@+id/navigationListView"
+                            android:layout_gravity="start"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:dividerHeight="0dp"
+                            android:divider="@null"
+                            android:choiceMode="singleChoice" />
 
-        </androidx.drawerlayout.widget.DrawerLayout>
+                </androidx.drawerlayout.widget.DrawerLayout>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:clickable="true"
+                    android:src="@drawable/ic_add_white_24dp"
+                    app:layout_anchorGravity="bottom|right|end"
+                    app:layout_anchor="@id/contentFrame"
+                    android:focusable="true" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
 </layout>

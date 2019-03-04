@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.kamerlin.leon.todoapp.db.category.Category;
+import com.kamerlin.leon.todoapp.worker.ReminderWorker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,12 +13,18 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Entity(
         tableName = "task_table",
@@ -32,11 +39,28 @@ import java.util.Objects;
 )
 public class Task implements Parcelable {
 
+    public enum Sort {
+        NONE,
+        PRIORITY,
+        FAVORITE,
+        ALPHABETICAL_A_Z,
+        ALPHABETICAL_Z_A,
+        CREATED_NEWEST_FIRST,
+        CREATED_OLDEST_FIRST,
+        DUE_DATE,
+        DUE_DATE_INVERSE
+    }
+
     public static final int PRIORITY_NONE = 0;
     public static final int PRIORITY_LOW = 1;
     public static final int PRIORITY_MEDIUM = 2;
     public static final int PRIORITY_HIGH = 3;
-    private static final long NOT_SET = -1;
+    public static final long NOT_SET = -1;
+    public static final String TITLE_TAG = "title_tag";
+    public static final String DESCRIPTION_TAG = "description_tag";
+    public static final String WORKER_ID_TAG = "worker_id";
+    public static final String CREATED_AT_TAG = "created_at";
+
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "task_id")
@@ -74,7 +98,12 @@ public class Task implements Parcelable {
     @ColumnInfo(name = "task_category_name")
     private String mCategoryName;
 
+    @ColumnInfo(name = "worker_id")
+    private String mWorkerId;
 
+    @NonNull
+    @ColumnInfo(name = "is_scheduled")
+    private boolean mIsScheduled;
 
 
 
@@ -84,6 +113,12 @@ public class Task implements Parcelable {
         setDueDate(NOT_SET);
         setPriorityCode(PRIORITY_NONE);
         setIsCompleted(false);
+        setIsScheduled(false);
+        setCreatedAt(System.currentTimeMillis());
+        if (!hasWorkId()) {
+            setWorkerId(UUID.randomUUID().toString());
+        }
+
     }
 
     @Ignore
@@ -130,7 +165,7 @@ public class Task implements Parcelable {
         return getDueDate() != NOT_SET;
     }
 
-    public boolean hasRemaindMe() {
+    public boolean hasRemindMe() {
         return getRemindMe() != NOT_SET;
     }
 
@@ -164,7 +199,7 @@ public class Task implements Parcelable {
 
     @NonNull
     public String getName() {
-        return (mName == null) ? "" : mName;
+        return mName;
     }
 
     public void setName(@NonNull String name) {
@@ -199,6 +234,10 @@ public class Task implements Parcelable {
         return mRemindMe;
     }
 
+    public long getRemindDiff() {
+        return getDueDate() - getRemindMe();
+    }
+
     public void setRemindMe(long remindMe) {
         mRemindMe = remindMe;
     }
@@ -209,6 +248,26 @@ public class Task implements Parcelable {
 
     public void setIsCompleted(boolean completed) {
         mIsCompleted = completed;
+    }
+
+
+    public String getWorkerId() {
+        return mWorkerId;
+    }
+
+    public void setWorkerId(String workerId) {
+        mWorkerId = workerId;
+    }
+    public boolean hasWorkId() {
+        return getWorkerId() != null && !getWorkerId().isEmpty();
+    }
+
+    public boolean isScheduled() {
+        return mIsScheduled;
+    }
+
+    public void setIsScheduled(boolean scheduled) {
+        mIsScheduled = scheduled;
     }
 
     @Nullable
@@ -292,5 +351,36 @@ public class Task implements Parcelable {
             return task.toString().equals(this.toString());
         }
         return false;
+    }
+
+    public boolean scheduleReminder() {
+        if (!hasWorkId() || !hasRemindMe() || !hasDueDate()) return false;
+
+        long delayFromNow = getRemindMe() - System.currentTimeMillis();
+        Data.Builder data = new Data.Builder()
+                .putString(Task.TITLE_TAG, getName())
+                .putLong(Task.CREATED_AT_TAG, getCreatedAt());
+        if (hasDescription()) {
+            data.putString(Task.DESCRIPTION_TAG, getDescription());
+        }
+
+        OneTimeWorkRequest simpleRequest = new OneTimeWorkRequest.Builder(ReminderWorker.class)
+                .setInitialDelay(delayFromNow, TimeUnit.MILLISECONDS)
+                .setInputData(data.build())
+                .build();
+
+
+
+
+
+        WorkManager.getInstance().enqueueUniqueWork(getWorkerId(), ExistingWorkPolicy.REPLACE, simpleRequest);
+
+        return true;
+    }
+
+    public boolean cancelReminder() {
+        if(!hasWorkId()) return false;
+        WorkManager.getInstance().cancelUniqueWork(getWorkerId());
+        return true;
     }
 }

@@ -10,12 +10,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
-
 import com.kamerlin.leon.todoapp.R;
+import com.kamerlin.leon.todoapp.databinding.ActivityMainBinding;
 import com.kamerlin.leon.todoapp.db.category.Category;
 import com.kamerlin.leon.todoapp.db.category.CategoryService;
 import com.kamerlin.leon.todoapp.db.task.Task;
@@ -36,19 +35,17 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.util.Pair;
 import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.Observer;
 import dagger.android.support.DaggerAppCompatActivity;
 
 public class MainActivity extends DaggerAppCompatActivity implements NavigationFooterView.NavigationFooterListener, MenuAdapter.ItemListener, MainViewModel.EventListener, MjolnirRecyclerAdapter.OnClickListener<Task> {
 
 
-    public static final String EXTRA_CATEGORY_NAME = "extra_category_name";
+
     public static final String EXTRA_TASK = "extra_task";
-    private DrawerLayout mDrawerLayout;
-    private ListView mNavigationListView;
     private ActionBarDrawerToggle mDrawerToggle;
     private TaskListFragment mTaskListFragment;
     private TextInputEditText mTextInputEditText;
@@ -59,33 +56,37 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     MainViewModel viewModel;
     @Inject
     TaskListAdapter taskListAdapter;
+    @Inject
+    ActivityMainBinding binding;
 
 
 
-
-
-    @SuppressLint("CheckResult")
+    @SuppressLint({"CheckResult", "RestrictedApi"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(binding.getRoot());
         if (!setupActionBar()) return;
-        initializeViews();
+
         setupMenuAdapter();
         setupNavigationListView();
         setupActionBarDrawerToggle();
         setupTaskListFragment(savedInstanceState);
         updateViews();
 
-        MediatorLiveData<String> mediatorLiveData = new MediatorLiveData<>();
-        mediatorLiveData.addSource(viewModel.getTitle(), s -> Toast.makeText(this, s, Toast.LENGTH_SHORT).show());
+
+        binding.fab.setOnClickListener(v -> {
+            startTaskActivity();
+        });
+
+        mTaskListFragment.setViewModel(viewModel);
 
     }
 
     private void updateViews() {
         viewModel.getCategories().observe(this, mMenuAdapter::setCategories);
         viewModel.getTasks().observe(this, tasks -> {
-            taskListAdapter.update(tasks, new TaskDiffUtilCallback(tasks, new ArrayList<>(taskListAdapter.getAll())));
+           taskListAdapter.update(tasks, new TaskDiffUtilCallback(tasks, new ArrayList<>(taskListAdapter.getAll())));
 
 
         });
@@ -107,14 +108,11 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         return true;
     }
 
-    private void initializeViews() {
-        mDrawerLayout = findViewById(R.id.drawerLayout);
-        mNavigationListView = findViewById(R.id.navigationListView);
-    }
+
 
     @SuppressLint("CheckResult")
     private void setupMenuAdapter() {
-        mMenuAdapter = new MenuAdapter(this, viewModel.getSelectedCategory().getValue());
+        mMenuAdapter = new MenuAdapter(this, viewModel.getSelectedCategory());
 
     }
 
@@ -122,13 +120,13 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         View header = LayoutInflater.from(this).inflate(R.layout.navigation_header, null);
         View footer = new NavigationFooterView(this);
 
-        mNavigationListView.addHeaderView(header);
-        mNavigationListView.addFooterView(footer);
-        mNavigationListView.setAdapter(mMenuAdapter);
+        binding.navigationListView.addHeaderView(header);
+        binding.navigationListView.addFooterView(footer);
+        binding.navigationListView.setAdapter(mMenuAdapter);
     }
 
     private void setupActionBarDrawerToggle() {
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+        mDrawerToggle = new ActionBarDrawerToggle(this, binding.drawerLayout, R.string.drawer_open, R.string.drawer_close) {
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 invalidateOptionsMenu();
@@ -142,7 +140,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         };
 
         mDrawerToggle.setDrawerIndicatorEnabled(true);
-        mDrawerLayout.addDrawerListener(mDrawerToggle);
+        binding.drawerLayout.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
     }
 
@@ -169,9 +167,30 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (item.getItemId() == R.id.delete_category) {
+        long id = item.getItemId();
+        if (id == R.id.delete_category) {
             showDeleteCategoryDialog();
+        } else {
+            if(id == R.id.menu_none) {
+                viewModel.setSortBy(Task.Sort.NONE);
+            } else if (id == R.id.menu_priority) {
+                viewModel.setSortBy(Task.Sort.PRIORITY);
+            } else if (id == R.id.menu_favorite) {
+                viewModel.setSortBy(Task.Sort.FAVORITE);
+            } else if(id == R.id.menu_alphabetical_a_z) {
+                viewModel.setSortBy(Task.Sort.ALPHABETICAL_A_Z);
+            } else if(id == R.id.menu_alphabetical_z_a) {
+                viewModel.setSortBy(Task.Sort.ALPHABETICAL_Z_A);
+            } else if(id == R.id.menu_created_newest_first) {
+                viewModel.setSortBy(Task.Sort.CREATED_NEWEST_FIRST);
+            } else if(id == R.id.menu_created_oldest_first) {
+                viewModel.setSortBy(Task.Sort.CREATED_OLDEST_FIRST);
+            } else if(id == R.id.menu_due_date_newest_first) {
+                viewModel.setSortBy(Task.Sort.DUE_DATE);
+            } else if(id == R.id.menu_due_date_oldest_first) {
+                viewModel.setSortBy(Task.Sort.DUE_DATE_INVERSE);
+            }
+            invalidateOptionsMenu();
         }
 
         // Activate the navigation drawer toggle
@@ -186,10 +205,10 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     @SuppressLint("CheckResult")
     private void showDeleteCategoryDialog() {
         Dialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Delete category: "+ viewModel.getSelectedCategory().getValue() + " ?")
+                .setTitle("Delete category: "+ viewModel.getSelectedCategory() + " ?")
                 .setMessage("If you delete this category, then all task will be deleted as well")
                 .setPositiveButton("Delete", (dialog1, which) -> {
-                    CategoryService.delete(this, viewModel.getSelectedCategory().getValue());
+                    CategoryService.delete(this, viewModel.getSelectedCategory());
                     viewModel.setSelectedCategory(MainViewModel.INITIAL_CATEGORY);
                 })
                 .setNegativeButton("Cancel", null)
@@ -221,6 +240,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
 
 
+
     @SuppressLint("CheckResult")
     private void showMaterialColorPicker() {
         // show material color picker
@@ -244,23 +264,57 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (viewModel.getSelectedCategory().getValue().equals("All"))return false;
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
+        MenuItem item = menu.findItem(R.id.delete_category);
+        if (viewModel.getSelectedCategory() != null && viewModel.getSelectedCategory().equals("All")) {
+            item.setVisible(false);
+        } else {
+            item.setVisible(false);
+        }
+
+        Task.Sort sort = viewModel.getSort();
+        if (sort == null)return true;
+        if (sort.equals(Task.Sort.NONE)) {
+            menu.findItem(R.id.menu_none).setChecked(true);
+        } else if (sort.equals(Task.Sort.PRIORITY)) {
+            menu.findItem(R.id.menu_priority).setChecked(true);
+        } else if (sort.equals(Task.Sort.FAVORITE)) {
+            menu.findItem(R.id.menu_favorite).setChecked(true);
+        } else if (sort.equals(Task.Sort.ALPHABETICAL_A_Z)) {
+            menu.findItem(R.id.menu_alphabetical_a_z).setChecked(true);
+        } else if (sort.equals(Task.Sort.ALPHABETICAL_Z_A)) {
+            menu.findItem(R.id.menu_alphabetical_z_a).setChecked(true);
+        } else if (sort.equals(Task.Sort.CREATED_NEWEST_FIRST)) {
+            menu.findItem(R.id.menu_created_newest_first).setChecked(true);
+        } else if (sort.equals(Task.Sort.CREATED_OLDEST_FIRST)) {
+            menu.findItem(R.id.menu_created_oldest_first).setChecked(true);
+        } else if (sort.equals(Task.Sort.DUE_DATE)) {
+            menu.findItem(R.id.menu_due_date_newest_first).setChecked(true);
+        } else if (sort.equals(Task.Sort.DUE_DATE_INVERSE)) {
+            menu.findItem(R.id.menu_due_date_oldest_first).setChecked(true);
+        }
+
+
+
         return true;
     }
 
 
 
+
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawers();
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawers();
             Toast.makeText(this, "Click back one more time to exit", Toast.LENGTH_SHORT).show();
         } else {
             super.onBackPressed();
         }
     }
+
+
 
     @Override
     public void onNewCategoryClick(View v) {
@@ -270,6 +324,10 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
     @Override
     public void onSettingsClick(View v) {
+
+    }
+
+    private void startTaskActivity() {
         Intent intent = new Intent(this, TaskActivity.class);
         startActivity(intent);
     }
@@ -278,7 +336,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     public void onItemClick(View itemView, int position, Category category) {
         viewModel.setTitle(category.getName());
         viewModel.setSelectedCategory(category.getName());
-        mDrawerLayout.closeDrawers();
+        binding.drawerLayout.closeDrawers();
 
     }
 
@@ -294,7 +352,6 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     public void onClick(int index, Task task) {
         Intent intent = new Intent(this, TaskActivity.class);
         intent.putExtra(EXTRA_TASK, task);
-        intent.putExtra(EXTRA_CATEGORY_NAME, viewModel.getSelectedCategory().getValue());
         startActivity(intent);
     }
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.widget.Toast;
 
 import com.annimon.stream.Stream;
+import com.kamerlin.leon.todoapp.worker.ReminderWorker;
 import com.kamerlin.leon.todoapp.R;
 import com.kamerlin.leon.todoapp.db.TodoRoomDatabase;
 import com.kamerlin.leon.todoapp.db.category.Category;
@@ -12,30 +13,37 @@ import com.kamerlin.leon.todoapp.db.task.TaskService;
 import com.kamerlin.leon.todoapp.ui.dialog.PriorityFragmentDialog;
 import com.kamerlin.leon.todoapp.ui.dialog.ReminderFragmentDialog;
 import com.kamerlin.leon.utils.data_structures.Pair;
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
-import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import androidx.arch.core.util.Function;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.ReplaySubject;
 
-public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, TaskContract.Model {
+public class TaskViewModel extends ViewModel implements TaskContract.Model {
 
     private final TaskActivity mTaskActivity;
     private final TaskContract.View mView;
     private final TodoRoomDatabase mDatabase;
-    private int mHourOfDay = 12, mMinute = 0, mSeconds = 0;
+    private int mYear, mMonth, mDay, mHourOfDay = 12, mMinute = 0, mSeconds = 0;
     private Calendar mCalendar;
     private Task mTask;
+
+    private ReplaySubject<Boolean> mOnCreateSubjectReplay;
 
     private MutableLiveData<Boolean> mIsCompleted, mIsFavorite;
     private MutableLiveData<String> mDueDate, mDueDateTime, mTaskName, mTaskDescription, mTaskNameError;
@@ -49,6 +57,7 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
         mTaskActivity = taskActivity;
         mView = view;
         mDatabase = database;
+        mOnCreateSubjectReplay = ReplaySubject.create();
 
         mIsCompleted = new MutableLiveData<>();
         mIsFavorite = new MutableLiveData<>();
@@ -65,9 +74,12 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
 
 
         mCalendar = Calendar.getInstance();
-        setReminderValue(new Pair<>(taskActivity.getResources().getString(R.string.none), -1L));
-        setPriorityValue(new Pair<>(taskActivity.getResources().getString(R.string.none), Task.PRIORITY_NONE));
-        setDueDate(mTaskActivity.getResources().getString(R.string.none));
+        mYear = mCalendar.get(Calendar.YEAR);
+        mMonth = mCalendar.get(Calendar.MONTH);
+        mDay = mCalendar.get(Calendar.DAY_OF_MONTH);
+        setReminderValue(new Pair<>(getNoneString(taskActivity), -1L));
+        setPriorityValue(new Pair<>(getNoneString(taskActivity), Task.PRIORITY_NONE));
+        setDueDate(getNoneString(mTaskActivity));
 
 
 
@@ -76,19 +88,24 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
                 .observeOn(AndroidSchedulers.mainThread());
 
 
-        categoriesObservable.subscribe(categories -> {
-            List<Category> categories1 = Stream.of(categories)
+        Observable.combineLatest(categoriesObservable, mOnCreateSubjectReplay, (categories, aBoolean) -> categories).subscribe(categories -> {
+            List<Category> categoryList = Stream.of(categories)
                     .filter(value -> !value.getName().equals("All"))
                     .toList();
-            Category[] categories2 = categories1.toArray(new Category[categories1.size()]);
+            Category[] categoriesArray = categoryList.toArray(new Category[categoryList.size()]);
 
-            setCategories(categories2);
+            setCategories(categoriesArray);
             if (mTask == null) {
-                setCategoryByName(categories2[0].getName());
+                String categoryName = categoriesArray[0].getName();
+                System.out.println(categoryName);
+                setCategoryByNameAsync(categoryName);
             }
-
         });
 
+    }
+
+    private String getNoneString(TaskActivity taskActivity) {
+        return taskActivity.getResources().getString(R.string.none);
     }
 
     /* Task Name */
@@ -192,7 +209,7 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
 
 
     @SuppressLint("CheckResult")
-    public void setCategoryByName(String category) {
+    public void setCategoryByNameAsync(String category) {
         mDatabase.categoryDao()
                 .getCategoryByNameSingle(category)
                 .subscribeOn(Schedulers.io())
@@ -256,9 +273,15 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
 
 
     public void unset() {
-        setDueDate(mTaskActivity.getResources().getString(R.string.none));
+        setDueDate(getNoneString(mTaskActivity));
+        if (mTask != null) {
+            mTask.setDueDate(Task.NOT_SET);
+            mTask.setRemindMe(Task.NOT_SET);
+
+        }
     }
 
+    @Override
     public void insertOrUpdateTask() {
         if (mTaskName.getValue() == null || mTaskName.getValue().isEmpty()) {
             setTaskNameError("Task name is required");
@@ -270,76 +293,97 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
             return;
         }
 
-        String taskName = mTaskName.getValue();
-        String categoryName = getCategory().getValue();
-
-        Task task = (mTask == null) ? new Task(taskName) : mTask;
-        task.setCategoryName(categoryName);
 
 
-        if (mPriorityValue.getValue() != null) {
-            int priority = mPriorityValue.getValue().getSecondValue();
-            task.setPriorityCode(priority);
-        }
+        getCategory().observeForever(categoryName -> {
+            String taskName = mTaskName.getValue();
+            Task task = (mTask == null) ? new Task() : mTask;
+            task.setName(taskName);
+            task.setCategoryName(categoryName);
 
-        if (mIsCompleted.getValue() != null) {
-            boolean isCompleted = mIsCompleted.getValue();
-            task.setIsCompleted(isCompleted);
 
-        }
-
-        if (mIsFavorite.getValue() != null) {
-            boolean isFavorite = mIsFavorite.getValue();
-            task.setIsFavorite(isFavorite);
-        }
-
-        if (mTaskDescription.getValue() != null) {
-            String taskDescription = mTaskDescription.getValue();
-            task.setDescription(taskDescription);
-        }
-
-        if (isSetDueDate()) {
-            long dueDate = mCalendar.getTimeInMillis();
-            task.setDueDate(dueDate);
-            if (mReminderValue.getValue() != null) {
-                long reminder = mReminderValue.getValue().getSecondValue();
-                task.setRemindMe(dueDate - reminder);
+            if (mPriorityValue.getValue() != null) {
+                int priority = mPriorityValue.getValue().getSecondValue();
+                task.setPriorityCode(priority);
             }
-        }
+
+            if (mIsCompleted.getValue() != null) {
+                boolean isCompleted = mIsCompleted.getValue();
+                task.setIsCompleted(isCompleted);
+            }
+
+            if (mIsFavorite.getValue() != null) {
+                boolean isFavorite = mIsFavorite.getValue();
+                task.setIsFavorite(isFavorite);
+            }
+
+            if (mTaskDescription.getValue() != null) {
+                String taskDescription = mTaskDescription.getValue();
+                task.setDescription(taskDescription);
+            }
+
+            if (task.hasWorkId()) {
+                WorkManager.getInstance().cancelWorkById(UUID.fromString(task.getWorkerId()));
+            }
 
 
-        if (task.hasId()) {
-            TaskService.update(mTaskActivity, task);
-        } else {
-            TaskService.insert(mTaskActivity, task);
-        }
+            if (isSetDueDate()) {
+                long dueDate = mCalendar.getTimeInMillis();
+                task.setDueDate(dueDate);
+                if (isSetReminder() && mReminderValue.getValue() != null) {
+                    long reminder = mReminderValue.getValue().getSecondValue();
+                    long remindMeAt = dueDate - reminder;
+                    task.setRemindMe(remindMeAt);
+                    task.scheduleReminder();
 
-        mView.onCloseActivity();
+                } else {
+                    task.setRemindMe(Task.NOT_SET);
+                    task.cancelReminder();
+                }
+            } else {
+                task.setRemindMe(Task.NOT_SET);
+                task.cancelReminder();
+            }
+
+
+
+            if (task.hasId()) {
+                TaskService.update(mTaskActivity, task);
+            } else {
+                TaskService.insert(mTaskActivity, task);
+            }
+
+            mView.onCloseActivity();
+        });
+
+
+
     }
 
     private boolean isSetDueDate() {
-        return !mTaskActivity.getResources().getString(R.string.none).equals(getDueDate().getValue());
+        return !getNoneString(mTaskActivity).equals(getDueDate().getValue());
     }
 
     private boolean isSetReminder() {
-        return !mTaskActivity.getResources().getString(R.string.none).equals(getReminder().getValue());
+        return !getNoneString(mTaskActivity).equals(getReminder().getValue());
     }
 
     private boolean isSetPriority() {
-        return !mTaskActivity.getResources().getString(R.string.none).equals(getPriority().getValue());
+        return !getNoneString(mTaskActivity).equals(getPriority().getValue());
     }
 
     private boolean isSetCategory() {
-        return !mTaskActivity.getResources().getString(R.string.none).equals(getCategory().getValue());
+        return !getNoneString(mTaskActivity).equals(getCategory().getValue());
     }
 
-
+    @Override
     public void setTask(Task task) {
         mTask = task;
         setTaskName(task.getName());
 
 
-        setCategoryByName(task.getCategoryName());
+
+        setCategoryByNameAsync(task.getCategoryName());
 
 
         if (task.hasDescription()) {
@@ -357,8 +401,12 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
             int hour = mCalendar.get(Calendar.HOUR_OF_DAY);
             int minute = mCalendar.get(Calendar.MINUTE);
 
-            onDateSet(null, year, month, day);
-            onTimeSet(null, hour, minute, mSeconds);
+            onDateSet(year, month, day);
+            onTimeSet(hour, minute, mSeconds);
+        }
+
+        if (task.isScheduled()) {
+            setReminderValue(new Pair<>(getNoneString(mTaskActivity), -1L));
         }
 
 
@@ -367,38 +415,73 @@ public class TaskViewModel extends ViewModel implements DatePickerDialog.OnDateS
 
 
 
-        String remindMeText = ReminderFragmentDialog.getData().inverse().get(task.getRemindMe());
+        String remindMeText = ReminderFragmentDialog.getData().inverse().get(task.getRemindDiff());
         String priorityText = PriorityFragmentDialog.getData().inverse().get(task.getPriorityCode());
-        setReminderValue(new Pair<>(remindMeText, task.getRemindMe()));
+        setReminderValue(new Pair<>(remindMeText, task.getRemindDiff()));
         setPriorityValue(new Pair<>(priorityText, task.getPriorityCode()));
 
     }
 
+    @Override
+    public void onCreate() {
+        mOnCreateSubjectReplay.onNext(true);
+    }
+
 
     @Override
-    public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-        if (view != null) {
-            mView.onShowTimePickerDialog();
-            mCalendar.set(Calendar.YEAR, year);
-            mCalendar.set(Calendar.MONTH, monthOfYear);
-            mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        }
+    public void onDateSet(int year, int monthOfYear, int dayOfMonth) {
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy/mm/dd", Locale.getDefault());
+        mCalendar.set(Calendar.YEAR, year);
+        mCalendar.set(Calendar.MONTH, monthOfYear);
+        mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
         setDueDate(format.format(mCalendar.getTime()));
-        onTimeSet(null, mHourOfDay, mMinute, mSeconds);
+        onTimeSet(mHourOfDay, mMinute, mSeconds);
     }
 
     @Override
-    public void onTimeSet(TimePickerDialog view, int hourOfDay, int minute, int second) {
+    public int getHour() {
+        return mHourOfDay;
+    }
 
+    @Override
+    public int getMinute() {
+        return mMinute;
+    }
+
+    @Override
+    public int getSeconds() {
+        return mSeconds;
+    }
+
+    @Override
+    public int getYear() {
+        return mYear;
+    }
+
+    @Override
+    public int getMonth() {
+        return mMonth;
+    }
+
+    @Override
+    public int getDay() {
+        return mDay;
+    }
+
+    @Override
+    public void onTimeSet(int hourOfDay, int minute, int second) {
         mHourOfDay = hourOfDay;
         mMinute = minute;
         mSeconds = second;
-        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         mCalendar.set(Calendar.HOUR_OF_DAY, mHourOfDay);
         mCalendar.set(Calendar.MINUTE, mMinute);
         mCalendar.set(Calendar.SECOND, mSeconds);
+
+
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
 
         String dueDateTime = format.format(mCalendar.getTime());
         setDueDateTime(dueDateTime);

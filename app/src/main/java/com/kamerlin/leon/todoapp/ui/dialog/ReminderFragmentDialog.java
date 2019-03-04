@@ -9,7 +9,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.kamerlin.leon.todoapp.R;
 import com.kamerlin.leon.utils.data_structures.Pair;
-import com.kamerlin.leon.utils.utils.DialogFragmentCancelable;
+import com.kamerlin.leon.utils.utils.DaggerDialogFragmentCancelable;
 
 import java.util.Arrays;
 
@@ -21,8 +21,16 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.ReplaySubject;
 
-public class ReminderFragmentDialog extends DialogFragmentCancelable {
+public class ReminderFragmentDialog extends DaggerDialogFragmentCancelable {
     public static final String TAG = ReminderFragmentDialog.class.getSimpleName();
+    private static int numberOfCreation = 0;
+
+    private static final String ARG_SELECTED_STRING = "arg_selected_string";
+    private static final String ARG_SELECTED_LONG = "arg_selected_long";
+
+    private final ReplaySubject<Pair<String, Long>> mStringReplaySubject;
+    private String mSelected;
+    private int mSelectedIndex;
 
 
 
@@ -58,17 +66,9 @@ public class ReminderFragmentDialog extends DialogFragmentCancelable {
 
 
 
-    private static final String ARG_SELECTED_STRING = "arg_selected_string";
-    private static final String ARG_SELECTED_LONG = "arg_selected_long";
-
-    private final ReplaySubject<Pair<String, Long>> mStringReplaySubject;
-    private String mSelected;
-    private int mSelectedIndex;
 
     public static ReminderFragmentDialog newInstance() {
-
         Bundle args = new Bundle();
-
         ReminderFragmentDialog fragment = new ReminderFragmentDialog();
         fragment.setArguments(args);
         return fragment;
@@ -96,8 +96,9 @@ public class ReminderFragmentDialog extends DialogFragmentCancelable {
 
     @SuppressLint("CheckResult")
     public ReminderFragmentDialog() {
-
         mStringReplaySubject = ReplaySubject.create();
+        mSelected = getData().inverse().get(-1L);
+        mSelectedIndex = Arrays.asList(getArrayData()).indexOf(mSelected);
 
         getPositiveButtonClickObservable().subscribe(aBoolean -> {
             mStringReplaySubject.onNext(new Pair<>(mSelected, getData().get(mSelected)));
@@ -105,7 +106,7 @@ public class ReminderFragmentDialog extends DialogFragmentCancelable {
         });
 
         getNegativeButtonClickObservable().subscribe(aBoolean -> {
-            getDialog().dismiss();;
+            getDialog().dismiss();
         });
     }
 
@@ -122,23 +123,24 @@ public class ReminderFragmentDialog extends DialogFragmentCancelable {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        mSelectedIndex = 0;
-        mSelected = getArrayData()[mSelectedIndex];
+
+
         Bundle bundle = getArguments();
-        if (bundle != null) {
+        if (numberOfCreation == 0 && bundle != null) {
             if (bundle.containsKey(ARG_SELECTED_LONG)) {
                 long selected = bundle.getLong(ARG_SELECTED_LONG, -1L);
                 mSelected = getData().inverse().get(selected);
-
-                mSelectedIndex = Arrays.asList(getData()).indexOf(mSelected);
+                mSelectedIndex = Arrays.asList(getArrayData()).indexOf(mSelected);
             } else if (bundle.containsKey(ARG_SELECTED_STRING)) {
                 mSelected = bundle.getString(ARG_SELECTED_STRING, getArrayData()[0]);
-                mSelectedIndex = Arrays.asList(getData()).indexOf(mSelected);
+                mSelectedIndex = Arrays.asList(getArrayData()).indexOf(mSelected);
             }
         }
 
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setIcon(R.drawable.ic_update_black_24dp);
         builder.setTitle("Remind me");
 
@@ -146,18 +148,18 @@ public class ReminderFragmentDialog extends DialogFragmentCancelable {
         builder.setNegativeButton("Cancel", null);
 
 
-        builder.setSingleChoiceItems(getArrayData(), mSelectedIndex, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mSelected = getArrayData()[which];
-                mSelectedIndex = which;
-                getDialog().invalidateOptionsMenu();
-            }
+        builder.setSingleChoiceItems(getArrayData(), mSelectedIndex, (dialog, which) -> {
+            mSelected = getArrayData()[which];
+            mSelectedIndex = which;
         });
 
-
+        numberOfCreation++;
         return builder.create();
     }
 
 
+    public void setSelectedReminder(String selected) {
+        mSelected = selected;
+        mSelectedIndex = Arrays.asList(getArrayData()).indexOf(selected);
+    }
 }

@@ -2,8 +2,6 @@ package com.kamerlin.leon.todoapp.ui.adapter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -11,7 +9,6 @@ import android.graphics.drawable.ShapeDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -21,39 +18,79 @@ import com.kamerlin.leon.todoapp.R;
 import com.kamerlin.leon.todoapp.databinding.ItemTaskBinding;
 import com.kamerlin.leon.todoapp.db.category.CategoryDao;
 import com.kamerlin.leon.todoapp.db.task.Task;
+import com.kamerlin.leon.todoapp.db.task.TaskService;
 import com.kamerlin.leon.utils.materialpallete.MaterialColor;
 import com.kamerlin.leon.utils.materialpallete.MaterialColorFactory;
-import com.kamerlin.leon.utils.mjolnir.ActionModeRecyclerViewAdapter;
-import com.kamerlin.leon.utils.mjolnir.MjolnirViewHolder;
+import com.kamerlin.leon.utils.mjolnir.MjolnirRecyclerAdapter;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
-import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import androidx.core.util.Pair;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.ReplaySubject;
 
 
-public class TaskListAdapter extends ActionModeRecyclerViewAdapter<Task> {
+public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
 
+    private ReplaySubject<Pair<Task, Task>> mPairReplaySubject;
+
+    @Override
+    public void onItemDismiss(int position) {
+        Task task = get(position);
+        if (task != null) {
+            task.cancelReminder();
+            TaskService.delete(getContext(), task);
+            super.onItemDismiss(position);
+        }
+    }
+
+
+
+    @Override
+    public void onItemMove(int fromPosition, int toPosition) {
+        Task from = get(fromPosition);
+        Task to = get(toPosition);
+        if (from != null && to != null) {
+            super.onItemMove(fromPosition, toPosition);
+            mPairReplaySubject.onNext(new Pair<>(from, to));
+
+        }
+
+    }
+
+    public Observable<Pair<Task, Task>> getOnItemMoveObservable() {
+        return mPairReplaySubject;
+    }
 
     private final CategoryDao mCategoryDao;
 
+    @SuppressLint("CheckResult")
     @Inject
     public TaskListAdapter(Activity context, CategoryDao categoryDao) {
         super(context, Collections.emptyList());
         mCategoryDao = categoryDao;
-
+        mPairReplaySubject = ReplaySubject.create();
+        getOnItemMoveObservable()
+                .filter(taskTaskPair -> taskTaskPair.first.getId() != taskTaskPair.second.getId())
+                .debounce(600, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(taskTaskPair -> {
+            TaskService.swapTask(context, taskTaskPair.first, taskTaskPair.second);
+        });
     }
 
     @Override
     protected TaskListHolder onCreateItemViewHolder(ViewGroup parent, int viewType) {
         View rootView = LayoutInflater.from(getContext()).inflate(R.layout.item_task, parent, false);
-        return new TaskListHolder(rootView);
+        View backgroundView = LayoutInflater.from(getContext()).inflate(R.layout.item_remove, null, false);
+        return new TaskListHolder(rootView, backgroundView);
     }
 
 
@@ -64,8 +101,8 @@ public class TaskListAdapter extends ActionModeRecyclerViewAdapter<Task> {
 
 
 
-        public TaskListHolder(View itemView) {
-            super(itemView);
+        public TaskListHolder(View itemView, View background) {
+            super(itemView, background);
             mBinding = ItemTaskBinding.bind(itemView);
             circleImageView = itemView.findViewById(R.id.circleImage);
             constraintLayout = itemView.findViewById(R.id.constraintLayout);
@@ -108,8 +145,8 @@ public class TaskListAdapter extends ActionModeRecyclerViewAdapter<Task> {
             }
 
 
-
         }
+
 
 
 
@@ -126,5 +163,7 @@ public class TaskListAdapter extends ActionModeRecyclerViewAdapter<Task> {
         }
 
     }
+
+
 
 }

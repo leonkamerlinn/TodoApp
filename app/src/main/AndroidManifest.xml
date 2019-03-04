@@ -6,6 +6,8 @@
 
     <dist:module dist:instant="true" />
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".application.MainApplication"
         android:icon="@mipmap/ic_launcher"
@@ -21,16 +23,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.task.TaskActivity"
-            android:theme="@style/Theme.NoActionBar"/>
+        <activity
+            android:name=".ui.activity.task.TaskActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoActionBar" />
 
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
 
-
-        <service android:name=".db.category.CategoryService" android:enabled="true" />
-        <service android:name=".db.task.TaskService" android:enabled="true" />
+        <service
+            android:name=".db.category.CategoryService"
+            android:enabled="true" />
+        <service
+            android:name=".db.task.TaskService"
+            android:enabled="true" />
+        <service android:name=".worker.ReminderService" /> <!-- Start the Service if applicable on boot -->
+        <receiver android:name=".broadcast_receiver.ServiceStarter">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -20,16 +20,17 @@ import io.reactivex.subjects.ReplaySubject;
 
 public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
     public static final String TAG = CategoryFragmentDialog.class.getSimpleName();
-
+    private static int numberOfCreation = 0;
     private static final String ARG_SELECTED_STRING = "arg_selected_string";
-
-    private Category[] mCategories;
-
+    public static final String STATE_DATA = "state_data";
 
     private final ReplaySubject<String> mStringReplaySubject;
-
+    private Category[] mCategories;
     private String mSelected;
     private int mSelectedIndex;
+
+
+
 
     public static CategoryFragmentDialog newInstance() {
 
@@ -52,6 +53,7 @@ public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
 
     @SuppressLint("CheckResult")
     public CategoryFragmentDialog() {
+        mSelectedIndex = 0;
         mStringReplaySubject = ReplaySubject.create();
 
 
@@ -80,14 +82,25 @@ public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
 
+        if (savedInstanceState != null) {
+            mCategories = (Category[]) savedInstanceState.getParcelableArray(STATE_DATA);
+        }
 
+        if (numberOfCreation == 0) {
+            Bundle bundle = getArguments();
+            if(bundle != null && bundle.containsKey(ARG_SELECTED_STRING)) {
+                mSelected = getArguments().getString(ARG_SELECTED_STRING);
+                mSelectedIndex = Arrays.asList(getCategoryNames()).indexOf(mSelected);
+                if (mSelectedIndex == -1) {
+                    mSelectedIndex = 0;
+                    mSelected = getCategoryNames()[mSelectedIndex];
+                }
+            }
+        }
 
         mSelected = getCategoryNames()[mSelectedIndex];
-        mSelectedIndex = 0;
-        if(getArguments().containsKey(ARG_SELECTED_STRING)) {
-            mSelected = getArguments().getString(ARG_SELECTED_STRING);
-            mSelectedIndex = Arrays.asList(getCategoryNames()).indexOf(mSelected);
-        }
+
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -105,14 +118,24 @@ public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
 
 
 
-
+        numberOfCreation++;
         return builder.create();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArray(STATE_DATA, mCategories);
     }
 
     public void setCategories(Category[] categories) {
         mCategories = categories;
     }
 
+    public void setSelectedCategory(String categoryName) {
+        mSelected = categoryName;
+        mSelectedIndex = Arrays.asList(getCategoryNames()).indexOf(mSelected);
+    }
 
     private String[] getCategoryNames() {
         return Stream.of(mCategories)

@@ -31,7 +31,7 @@ public class NavigationFooterView extends LinearLayoutCompat {
     private void init(Context context, AttributeSet attributeSet) {
         View view = LayoutInflater.from(getContext()).inflate(R.layout.navigation_footer, this);
         LinearLayoutCompat newCategoryLayout = view.findViewById(R.id.new_category_layout);
-        LinearLayoutCompat settingsLayout = view.findViewById(R.id.settings_layout);
+
 
         Activity activity = (Activity) getContext();
         if (activity instanceof NavigationFooterListener) {
@@ -44,12 +44,7 @@ public class NavigationFooterView extends LinearLayoutCompat {
                 }
             });
 
-            settingsLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mNavigationFooterListener.onSettingsClick(v);
-                }
-            });
+
 
         }
 

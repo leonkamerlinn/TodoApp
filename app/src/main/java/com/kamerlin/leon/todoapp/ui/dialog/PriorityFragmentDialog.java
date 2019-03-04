@@ -2,9 +2,7 @@ package com.kamerlin.leon.todoapp.ui.dialog;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -25,9 +23,12 @@ import io.reactivex.subjects.ReplaySubject;
 
 public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
     public static final String TAG = PriorityFragmentDialog.class.getSimpleName();
-
-    private static final String ARG_SELECTED_INT = "arg_selected_int";
-    private static final String ARG_SELECTED_STRING = "arg_selected_string";
+    private final ReplaySubject<Pair<String, Integer>> mStringReplaySubject;
+    private String mSelected;
+    private int mSelectedIndex;
+    private static int numberOfCreation = 0;
+    private static final String ARG_PRIORITY_CODE = "arg_selected_int";
+    private static final String ARG_PRIORITY = "arg_selected_string";
 
     public static BiMap<String, Integer> getData() {
         BiMap<String, Integer> data = HashBiMap.create();
@@ -43,10 +44,7 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
         return getData().inverse().values().toArray(new String[getData().values().size()]);
     }
 
-    private final ReplaySubject<Pair<String, Integer>> mStringReplaySubject;
 
-    private String mSelected;
-    private int mSelectedIndex;
 
     public static PriorityFragmentDialog newInstance() {
 
@@ -60,7 +58,7 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
     public static PriorityFragmentDialog newInstance(String selected) {
 
         Bundle args = new Bundle();
-        args.putString(ARG_SELECTED_STRING, selected);
+        args.putString(ARG_PRIORITY, selected);
         PriorityFragmentDialog fragment = new PriorityFragmentDialog();
         fragment.setArguments(args);
         return fragment;
@@ -69,7 +67,7 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
     public static PriorityFragmentDialog newInstance(int selected) {
 
         Bundle args = new Bundle();
-        args.putInt(ARG_SELECTED_INT, selected);
+        args.putInt(ARG_PRIORITY_CODE, selected);
 
         PriorityFragmentDialog fragment = new PriorityFragmentDialog();
         fragment.setArguments(args);
@@ -81,7 +79,7 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
 
 
         mStringReplaySubject = ReplaySubject.create();
-
+        mSelectedIndex = 0;
 
 
         getPositiveButtonClickObservable().subscribe(aBoolean -> {
@@ -106,25 +104,22 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
 
-        mSelected = getArrayData()[0];
-        mSelectedIndex = 0;
-
-
 
         Bundle bundle = getArguments();
-        if (bundle != null) {
+        if (numberOfCreation == 0 && bundle != null) {
+            if (bundle.containsKey(ARG_PRIORITY_CODE)) {
 
-            if (bundle.containsKey(ARG_SELECTED_INT)) {
-
-                int selected = bundle.getInt(ARG_SELECTED_INT, Task.PRIORITY_NONE);
-                mSelected = getData().inverse().get(selected);
+                int priorityCode = bundle.getInt(ARG_PRIORITY_CODE, Task.PRIORITY_NONE);
+                mSelected = getData().inverse().get(priorityCode);
                 mSelectedIndex = Arrays.asList(getArrayData()).indexOf(mSelected);
 
-            } else if (bundle.containsKey(ARG_SELECTED_STRING)) {
-                mSelected = bundle.getString(ARG_SELECTED_STRING, "None");
+            } else if (bundle.containsKey(ARG_PRIORITY)) {
+                mSelected = bundle.getString(ARG_PRIORITY, "None");
                 mSelectedIndex = Arrays.asList(getArrayData()).indexOf(mSelected);
             }
         }
+
+        mSelected = getArrayData()[mSelectedIndex];
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setIcon(R.drawable.ic_low_priority_black_24dp);
@@ -133,16 +128,19 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
         builder.setPositiveButton("Ok", null);
         builder.setNegativeButton("Cancel", null);
 
-        builder.setSingleChoiceItems(getArrayData(), mSelectedIndex, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mSelected = getArrayData()[which];
-                mSelectedIndex = which;
-                getDialog().invalidateOptionsMenu();
-            }
+        builder.setSingleChoiceItems(getArrayData(), mSelectedIndex, (dialog, which) -> {
+            mSelected = getArrayData()[which];
+            mSelectedIndex = which;
         });
-
+        numberOfCreation++;
 
         return builder.create();
+    }
+
+
+
+    public void setSelectedPriority(String priority) {
+        mSelected = priority;
+        mSelectedIndex = Arrays.asList(getArrayData()).indexOf(priority);
     }
 }

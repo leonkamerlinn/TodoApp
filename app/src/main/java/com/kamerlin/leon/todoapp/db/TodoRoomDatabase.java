@@ -40,7 +40,7 @@ import io.reactivex.schedulers.Schedulers;
  * The fact that this has very few comments emphasizes its coolness.
  */
 
-@Database(entities = {Category.class, Task.class}, version = 1)
+@Database(entities = {Category.class, Task.class}, version = 2)
 @TypeConverters(DateConverter.class)
 public abstract class TodoRoomDatabase extends RoomDatabase {
     public static final String DATABASE_NAME = "todo_database4";
@@ -60,7 +60,7 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
                             // Migration is not part of this codelab.
                             .fallbackToDestructiveMigration()
                             .addCallback(sRoomDatabaseCallback)
-                            .addMigrations(MIGRATION_1_2)
+                            //.addMigrations(MIGRATION_1_2)
                             .build();
                 }
             }
