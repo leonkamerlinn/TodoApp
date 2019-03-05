@@ -20,6 +20,7 @@ package com.kamerlin.leon.todoapp.db.category;
 import com.kamerlin.leon.utils.materialpallete.MaterialColor;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -43,9 +44,11 @@ import io.reactivex.Single;
 
 @Dao
 public abstract class CategoryDao {
+    @Query("SELECT * FROM category_table")
+    public abstract List<Category> getCategories();
 
-    @Query("SELECT * FROM category_table ORDER BY category_name ASC")
-    public abstract Observable<List<Category>> getAlphabetizedCategoriesObservable();
+    @Query("SELECT * FROM category_table")
+    public abstract Observable<List<Category>> getCategoriesObservable();
 
     @Query("SELECT * FROM category_table ORDER BY category_name ASC")
     public abstract LiveData<List<Category>> getAlphabetizedCategoriesLiveData();
@@ -66,10 +69,12 @@ public abstract class CategoryDao {
     public abstract LiveData<Integer> getCategoriesNumberLiveData(String category);
 
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insert(Category category);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insertAll(Category... categories);
 
     @Transaction
@@ -91,12 +96,26 @@ public abstract class CategoryDao {
     public abstract void delete(Category category);
 
 
+    @Delete
     public void delete(String categoryName) {
         Category category = getCategoryByName(categoryName);
+        System.out.println(category);
+
         if (category == null) throw new NullPointerException("Category is null");
+        deleteTasksByCategory(category.getName());
         delete(category);
+        Category category2 = getCategoryByName(categoryName);
+
+        if (category2 != null) {
+            System.out.println("Category is not deleted: " + categoryName);
+        }
+
+
     }
 
     @Query("DELETE FROM category_table")
     public abstract void deleteAll();
+
+    @Query("DELETE FROM task_table WHERE task_category_name = :categoryName")
+    public abstract void deleteTasksByCategory(String categoryName);
 }

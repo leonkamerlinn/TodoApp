@@ -34,10 +34,8 @@ public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
 
     public static CategoryFragmentDialog newInstance() {
 
-        Bundle args = new Bundle();
-
         CategoryFragmentDialog fragment = new CategoryFragmentDialog();
-        fragment.setArguments(args);
+
         return fragment;
     }
 
@@ -95,6 +93,10 @@ public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
                     mSelectedIndex = 0;
                     mSelected = getCategoryNames()[mSelectedIndex];
                 }
+            } else {
+                mSelectedIndex = Arrays.asList(getCategoryNames()).indexOf("Personal");
+                if (mSelectedIndex == -1) mSelectedIndex = 0;
+                mSelected = getCategoryNames()[mSelectedIndex];
             }
         }
 

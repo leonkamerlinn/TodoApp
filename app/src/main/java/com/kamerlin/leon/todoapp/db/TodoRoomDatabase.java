@@ -58,7 +58,8 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(), TodoRoomDatabase.class, DATABASE_NAME)
                             // Wipes and rebuilds instead of migrating if no Migration object.
                             // Migration is not part of this codelab.
-                            .fallbackToDestructiveMigration()
+                            //.fallbackToDestructiveMigration()
+                            .allowMainThreadQueries()
                             .addCallback(sRoomDatabaseCallback)
                             //.addMigrations(MIGRATION_1_2)
                             .build();

@@ -2,6 +2,7 @@ package com.kamerlin.leon.todoapp.ui.adapter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -16,6 +17,7 @@ import androidx.core.content.ContextCompat;
 
 import com.kamerlin.leon.todoapp.R;
 import com.kamerlin.leon.todoapp.databinding.ItemTaskBinding;
+import com.kamerlin.leon.todoapp.db.category.Category;
 import com.kamerlin.leon.todoapp.db.category.CategoryDao;
 import com.kamerlin.leon.todoapp.db.task.Task;
 import com.kamerlin.leon.todoapp.db.task.TaskService;
@@ -27,6 +29,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import androidx.core.util.Pair;
 import io.reactivex.Observable;
@@ -37,6 +40,24 @@ import io.reactivex.subjects.ReplaySubject;
 
 
 public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
+
+    private static TaskListAdapter INSTANCE;
+
+    public static TaskListAdapter newInstance(Activity activity, CategoryDao categoryDao) {
+        return new TaskListAdapter(activity, categoryDao);
+    }
+
+    public static TaskListAdapter getInstance(Activity activity, CategoryDao categoryDao) {
+        if (INSTANCE == null) {
+            synchronized (TaskListAdapter.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new TaskListAdapter(activity, categoryDao);
+                }
+            }
+        }
+
+        return INSTANCE;
+    }
 
     private ReplaySubject<Pair<Task, Task>> mPairReplaySubject;
 
@@ -71,9 +92,8 @@ public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
     private final CategoryDao mCategoryDao;
 
     @SuppressLint("CheckResult")
-    @Inject
-    public TaskListAdapter(Activity context, CategoryDao categoryDao) {
-        super(context, Collections.emptyList());
+    public TaskListAdapter(Activity activity, CategoryDao categoryDao) {
+        super(activity, Collections.emptyList());
         mCategoryDao = categoryDao;
         mPairReplaySubject = ReplaySubject.create();
         getOnItemMoveObservable()
@@ -82,7 +102,7 @@ public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(taskTaskPair -> {
-            TaskService.swapTask(context, taskTaskPair.first, taskTaskPair.second);
+            TaskService.swapTask(activity, taskTaskPair.first, taskTaskPair.second);
         });
     }
 

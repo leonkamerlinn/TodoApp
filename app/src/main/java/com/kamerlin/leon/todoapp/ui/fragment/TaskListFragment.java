@@ -72,6 +72,7 @@ public class TaskListFragment extends Fragment {
 
     private void setupAdapter() {
         ItemTouchCallbackHelper swipeToDeleteCallback = new ItemTouchCallbackHelper(getContext(), mTaskAdapter);
+        if (mViewModel == null) return;
 
         mViewModel.getEnableDragItem().observeForever(swipeToDeleteCallback::enableLongPressDrag);
 
@@ -79,9 +80,9 @@ public class TaskListFragment extends Fragment {
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
 
 
-        if (getActivity() instanceof OnClickListener) {
+        /*if (getActivity() instanceof OnClickListener) {
             mTaskAdapter.setOnClickListener((OnClickListener<Task>) getActivity());
-        }
+        }*/
 
 
 

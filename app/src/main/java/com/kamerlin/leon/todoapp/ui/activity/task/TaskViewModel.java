@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.widget.Toast;
 
 import com.annimon.stream.Stream;
-import com.kamerlin.leon.todoapp.worker.ReminderWorker;
 import com.kamerlin.leon.todoapp.R;
 import com.kamerlin.leon.todoapp.db.TodoRoomDatabase;
 import com.kamerlin.leon.todoapp.db.category.Category;
@@ -19,15 +18,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import androidx.arch.core.util.Function;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
-import androidx.work.Data;
-import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -83,7 +78,7 @@ public class TaskViewModel extends ViewModel implements TaskContract.Model {
 
 
 
-        Observable<List<Category>> categoriesObservable = database.categoryDao().getAlphabetizedCategoriesObservable()
+        Observable<List<Category>> categoriesObservable = database.categoryDao().getCategoriesObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
 
@@ -96,9 +91,11 @@ public class TaskViewModel extends ViewModel implements TaskContract.Model {
 
             setCategories(categoriesArray);
             if (mTask == null) {
-                String categoryName = categoriesArray[0].getName();
-                System.out.println(categoryName);
-                setCategoryByNameAsync(categoryName);
+                if (categoriesArray.length > 0) {
+                    String categoryName = categoriesArray[0].getName();
+                    setCategoryByNameAsync(categoryName);
+                }
+
             }
         });
 

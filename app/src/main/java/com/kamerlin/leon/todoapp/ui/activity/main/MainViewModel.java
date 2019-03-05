@@ -32,20 +32,17 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.ReplaySubject;
 
-public class MainViewModel extends ViewModel {
+public class MainViewModel extends ViewModel implements MainContract.Model {
 
 
 
     public static final String INITIAL_CATEGORY = "All";
     private final MainActivity mMainActivity;
     private final TodoRoomDatabase mDatabase;
-    private EventListener mEventListener;
-    private MutableLiveData<String> mTitle, mColorName, mNewCategory, mTextInputEditTextError;
-
-
-
+    private MutableLiveData<String> mTitle, mColorName, mNewCategory;
 
     public MutableLiveData<Pair<String, Task.Sort>> mPairMutableLiveData;
+    private MainContract.View mView;
 
 
 
@@ -53,18 +50,15 @@ public class MainViewModel extends ViewModel {
     public MainViewModel(MainActivity mainActivity, TodoRoomDatabase todoRoomDatabase) {
         mMainActivity = mainActivity;
         mDatabase = todoRoomDatabase;
+        mView = mainActivity;
 
 
 
-        if (mainActivity != null) {
-            mEventListener = mainActivity;
-        }
 
 
         mTitle = new MutableLiveData<>();
         mColorName = new MutableLiveData<>();
         mNewCategory = new MutableLiveData<>();
-        mTextInputEditTextError = new MutableLiveData<>();
         mPairMutableLiveData = new MutableLiveData<>();
 
 
@@ -157,47 +151,11 @@ public class MainViewModel extends ViewModel {
         return mNewCategory;
     }
 
-    public LiveData<String> getTextInputEditTextError() {
-        return mTextInputEditTextError;
-    }
 
-    @SuppressLint("CheckResult")
-    public void onPositiveButtonClick() {
-        String colorName = getColorName().getValue();
-        String newCategoryName = getNewCategoryName().getValue();
-        if (newCategoryName != null) {
-            if (newCategoryName.length() > 0) {
-                mDatabase.categoryDao().getCategoriesNumberObservable(newCategoryName)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(count -> {
-                            if (count == 0) {
-                                Category category = new Category(newCategoryName, colorName);
-                                CategoryService.insert(mMainActivity, category);
-                                setNewCategory(null);
-                                handleInsertEvent(category);
-                            } else {
-                                setTextInputEditTextError("This category already exist");
-                            }
-                        });
 
-            } else {
-                setTextInputEditTextError("Field is required");
-            }
-        } else {
-            setTextInputEditTextError("Field is required");
-        }
-    }
 
-    public void setTextInputEditTextError(String errorMessage) {
-        mTextInputEditTextError.setValue(errorMessage);
-    }
 
-    private void handleInsertEvent(Category category) {
-        if (mEventListener != null) {
-            mEventListener.onCategoryInserted(category);
-        }
-    }
+
 
     public String getSelectedCategory() {
         return mPairMutableLiveData.getValue().first;
@@ -218,10 +176,37 @@ public class MainViewModel extends ViewModel {
         setTitle(category);
     }
 
+    @SuppressLint("CheckResult")
+    @Override
+    public void createNewCategory() {
+        String colorName = getColorName().getValue();
+        String newCategoryName = getNewCategoryName().getValue();
+        if (newCategoryName != null) {
+            if (newCategoryName.length() > 0) {
+                mDatabase.categoryDao().getCategoriesNumberObservable(newCategoryName)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(count -> {
+                            if (count == 0) {
+                                Category category = new Category(newCategoryName, colorName);
+                                CategoryService.insert(mMainActivity, category);
+                                setNewCategory(null);
+                                mView.onCategoryInserted(category);
 
-    public interface EventListener {
-        void onCategoryInserted(Category category);
+                            } else {
+                                mView.showDialogErrorMessage("This category already exist");
+                            }
+                        });
+
+            } else {
+                mView.showDialogErrorMessage("Field is required");
+            }
+        } else {
+            mView.showDialogErrorMessage("Field is required");
+        }
     }
+
+
 
 
 }

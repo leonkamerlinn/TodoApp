@@ -36,13 +36,13 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.util.Pair;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import dagger.android.support.DaggerAppCompatActivity;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
-public class MainActivity extends DaggerAppCompatActivity implements NavigationFooterView.NavigationFooterListener, MenuAdapter.ItemListener, MainViewModel.EventListener, MjolnirRecyclerAdapter.OnClickListener<Task> {
+public class MainActivity extends DaggerAppCompatActivity implements NavigationFooterView.NavigationFooterListener, MenuAdapter.ItemListener, MjolnirRecyclerAdapter.OnClickListener<Task>, MainContract.View {
 
 
 
@@ -52,13 +52,19 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     private TextInputEditText mTextInputEditText;
     private MenuAdapter mMenuAdapter;
     private MaterialPalettePickerFragmentDialog mMaterialPalettePickerDialog;
+    private TaskListAdapter mTaskListAdapter;
 
     @Inject
     MainViewModel viewModel;
-    @Inject
-    TaskListAdapter taskListAdapter;
+
     @Inject
     ActivityMainBinding binding;
+
+    @Inject
+    TodoRoomDatabase database;
+
+    @Inject
+    MainContract.Model model;
 
 
 
@@ -67,8 +73,13 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(binding.getRoot());
-        if (!setupActionBar()) return;
 
+        //deleteDatabase(TodoRoomDatabase.DATABASE_NAME);
+
+        if (!setupActionBar()) return;
+        mTaskListAdapter = TaskListAdapter.getInstance(this, database.categoryDao());
+        mTaskListAdapter.setOnClickListener(this);
+        mMaterialPalettePickerDialog = getMaterialPalettePickerDialog();
         setupMenuAdapter();
         setupNavigationListView();
         setupActionBarDrawerToggle();
@@ -85,10 +96,11 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
     }
 
+
     private void updateViews() {
         viewModel.getCategories().observe(this, mMenuAdapter::setCategories);
         viewModel.getTasks().observe(this, tasks -> {
-           taskListAdapter.update(tasks, new TaskDiffUtilCallback(tasks, new ArrayList<>(taskListAdapter.getAll())));
+           mTaskListAdapter.update(tasks, new TaskDiffUtilCallback(tasks, new ArrayList<>(mTaskListAdapter.getAll())));
 
 
         });
@@ -96,11 +108,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
             Objects.requireNonNull(getSupportActionBar()).setTitle(title);
             invalidateOptionsMenu();
         });
-        viewModel.getTextInputEditTextError().observe(this, err -> {
-            if(mTextInputEditText != null) {
-                mTextInputEditText.setError(err);
-            }
-        });
+
     }
 
     private boolean setupActionBar() {
@@ -148,15 +156,16 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
     private void setupTaskListFragment(Bundle savedInstanceState) {
         if (savedInstanceState == null) {
-            mTaskListFragment = (TaskListFragment) getInitialFragment();
+            mTaskListFragment = TaskListFragment.newInstance(MainViewModel.INITIAL_CATEGORY);
+            addFragment(mTaskListFragment);
 
         } else {
             mTaskListFragment = (TaskListFragment) getSupportFragmentManager().findFragmentByTag(TaskListFragment.TAG);
         }
 
 
-        assert mTaskListFragment != null;
-        mTaskListFragment.setAdapter(taskListAdapter);
+
+        mTaskListFragment.setAdapter(mTaskListAdapter);
     }
 
 
@@ -223,11 +232,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         dialog.show();
     }
 
-    private Fragment getInitialFragment() {
-        TaskListFragment fragment = TaskListFragment.newInstance(MainViewModel.INITIAL_CATEGORY);
-        addFragment(fragment);
-        return fragment;
-    }
+
 
     private void addFragment(Fragment fragment) {
             getSupportFragmentManager().beginTransaction()
@@ -243,16 +248,19 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     }
 
 
+    private MaterialPalettePickerFragmentDialog getMaterialPalettePickerDialog() {
+        Fragment dialog = getSupportFragmentManager().findFragmentByTag(MaterialPalettePickerFragmentDialog.TAG);
+        if (dialog != null) return (MaterialPalettePickerFragmentDialog) dialog;
 
-
+        return new MaterialPalettePickerFragmentDialog.Builder()
+                .showTextInputEditText(true)
+                .setTitle("New category")
+                .build();
+    }
 
     @SuppressLint("CheckResult")
     private void showMaterialColorPicker() {
         // show material color picker
-        mMaterialPalettePickerDialog = new MaterialPalettePickerFragmentDialog.Builder()
-                .showTextInputEditText(true)
-                .setTitle("New category")
-                .build();
 
         mMaterialPalettePickerDialog.getColorNameObservable().subscribe(viewModel::setColorName);
         mMaterialPalettePickerDialog.getTitleObservable().subscribe(viewModel::setNewCategory);
@@ -260,7 +268,8 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
             mTextInputEditText = textInputEditText;
             mTextInputEditText.setHint("Enter category name");
         });
-        mMaterialPalettePickerDialog.getPositiveButtonClickObservable().subscribe(aBoolean -> viewModel.onPositiveButtonClick());
+        mMaterialPalettePickerDialog.getPositiveButtonClickObservable().subscribe(aBoolean -> model.createNewCategory());
+        mMaterialPalettePickerDialog.getNegativeButtonClickObservable().subscribe(aBoolean -> mMaterialPalettePickerDialog.dismiss());
 
         mMaterialPalettePickerDialog.show(getSupportFragmentManager(), MaterialPalettePickerFragmentDialog.TAG);
 
@@ -345,11 +354,10 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
 
     }
 
+    @SuppressLint("CheckResult")
     @Override
     public void onCategoryInserted(Category category) {
         mMaterialPalettePickerDialog.dismiss();
-        getSupportFragmentManager().beginTransaction().remove(mMaterialPalettePickerDialog).commit();
-
     }
 
 
@@ -358,5 +366,12 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         Intent intent = new Intent(this, TaskActivity.class);
         intent.putExtra(EXTRA_TASK, task);
         startActivity(intent);
+    }
+
+    @Override
+    public void showDialogErrorMessage(String message) {
+        if(mTextInputEditText != null) {
+            mTextInputEditText.setError(message);
+        }
     }
 }

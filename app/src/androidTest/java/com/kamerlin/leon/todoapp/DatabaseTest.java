@@ -3,8 +3,10 @@ package com.kamerlin.leon.todoapp;
 import android.content.Context;
 
 import com.kamerlin.leon.todoapp.db.TodoRoomDatabase;
+import com.kamerlin.leon.todoapp.db.category.Category;
 import com.kamerlin.leon.todoapp.db.task.Task;
 import com.kamerlin.leon.todoapp.ui.dialog.ReminderFragmentDialog;
+import com.kamerlin.leon.utils.materialpallete.MaterialColor;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
@@ -15,6 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Calendar;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -68,6 +71,7 @@ public class DatabaseTest {
 
         database.categoryDao().deleteAndPopulate();
 
+
         Task testTask = tasks[0];
         Task testTask2 = tasks[1];
         Task testTask3 = tasks[2];
@@ -100,6 +104,21 @@ public class DatabaseTest {
 
         Task taskLater = database.taskDao().getTaskById(testTask.getId());
         assertEquals(taskLater.getId(), 3);
+
+
+        Category category1 = new Category(50, "Test1", MaterialColor.AMBER);
+        Category category2 = new Category(51, "Test2", MaterialColor.BROWN);
+        List<Category> categories = database.categoryDao().getCategories();
+        assertEquals(categories.size(), 6);
+
+        database.categoryDao().insert(category1);
+
+        List<Category> categories1 = database.categoryDao().getCategories();
+        assertEquals(categories1.size(), 7);
+        database.categoryDao().delete(category1.getName());
+
+        List<Category> categories2 = database.categoryDao().getCategories();
+        assertEquals(categories2.size(), 6);
 
 
     }

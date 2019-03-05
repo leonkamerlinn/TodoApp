@@ -43,4 +43,10 @@ public abstract class MainActivityModule {
         binding.setModel(viewModel);
         return binding;
     }
+
+    @Provides
+    @ActivityScoped
+    static MainContract.Model provideModel(MainViewModel mainViewModel) {
+        return mainViewModel;
+    }
 }

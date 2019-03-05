@@ -40,21 +40,21 @@ public class MenuAdapter extends ArrayAdapter<Category> {
 
 
 
-            MenuItemView menuItem = new MenuItemView(getContext());
-            convertView = menuItem;
-            Category category = mCategories.get(position);
-            menuItem.setText(category.getName());
-            menuItem.setIcon(R.drawable.icon_menulist_grey);
+        MenuItemView menuItem = new MenuItemView(getContext());
+        convertView = menuItem;
+        Category category = mCategories.get(position);
+        menuItem.setText(category.getName());
+        menuItem.setIcon(R.drawable.icon_menulist_grey);
 
-            MaterialColor materialColor = MaterialColorFactory.getColor(category.getColorName());
-            if (materialColor != null) {
-                menuItem.setCircleColor(materialColor.get500());
-            }
+        MaterialColor materialColor = MaterialColorFactory.getColor(category.getColorName());
+        if (materialColor != null) {
+            menuItem.setCircleColor(materialColor.get500());
+        }
 
 
-            if (mItemListener != null) {
-                convertView.setOnClickListener(v -> mItemListener.onItemClick(v, position, category));
-            }
+        if (mItemListener != null) {
+            convertView.setOnClickListener(v -> mItemListener.onItemClick(v, position, category));
+        }
 
 
         return convertView;
@@ -66,9 +66,11 @@ public class MenuAdapter extends ArrayAdapter<Category> {
 
 
     public void setCategories(List<Category> categories) {
+        System.out.println(categories.size());
         mCategories.clear();
         mCategories.addAll(categories);
         notifyDataSetInvalidated();
+
     }
 
 

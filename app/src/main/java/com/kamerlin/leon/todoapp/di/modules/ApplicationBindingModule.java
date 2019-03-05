@@ -22,20 +22,19 @@ public abstract class ApplicationBindingModule {
     abstract Context bindContext(Application application);
 
 
-
     @Provides
     static TodoRoomDatabase provideDatabase(Application application) {
         return TodoRoomDatabase.getInstance(application.getApplicationContext());
     }
 
     @Provides
-    static TaskDao provideTaskDao(Application application) {
-        return TodoRoomDatabase.getInstance(application.getApplicationContext()).taskDao();
+    static TaskDao provideTaskDao(TodoRoomDatabase todoRoomDatabase) {
+        return todoRoomDatabase.taskDao();
     }
 
     @Provides
-    static CategoryDao provideCategoryDao(Application application) {
-        return TodoRoomDatabase.getInstance(application.getApplicationContext()).categoryDao();
+    static CategoryDao provideCategoryDao(TodoRoomDatabase todoRoomDatabase) {
+        return todoRoomDatabase.categoryDao();
     }
 
     @Provides

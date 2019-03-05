@@ -63,7 +63,9 @@ public class CategoryService extends DaggerIntentService {
             categoryDao.delete(category);
         } else if (intent.hasExtra(EXTRA_CATEGORY_NAME)) {
             String categoryName = intent.getStringExtra(EXTRA_CATEGORY_NAME);
-            categoryDao.delete(categoryName);
+            Category category = categoryDao.getCategoryByName(categoryName);
+            categoryDao.deleteTasksByCategory(categoryName);
+            categoryDao.delete(category);
         }
 
     }
