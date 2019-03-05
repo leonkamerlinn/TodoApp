@@ -56,6 +56,9 @@ public abstract class CategoryDao {
     @Query("SELECT * FROM category_table WHERE category_name = :categoryName")
     public abstract Single<Category> getCategoryByNameSingle(String categoryName);
 
+    @Query("SELECT * FROM category_table WHERE category_name = :categoryName")
+    public abstract Category getCategoryByName(String categoryName);
+
     @Query("SELECT COUNT(category_name) FROM category_table WHERE category_name = :category")
     public abstract Observable<Integer> getCategoriesNumberObservable(String category);
 
@@ -63,10 +66,10 @@ public abstract class CategoryDao {
     public abstract LiveData<Integer> getCategoriesNumberLiveData(String category);
 
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     public abstract void insert(Category category);
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     public abstract void insertAll(Category... categories);
 
     @Transaction
@@ -88,8 +91,11 @@ public abstract class CategoryDao {
     public abstract void delete(Category category);
 
 
-    @Query("DELETE FROM category_table WHERE category_name = :categoryName")
-    public abstract void delete(String categoryName);
+    public void delete(String categoryName) {
+        Category category = getCategoryByName(categoryName);
+        if (category == null) throw new NullPointerException("Category is null");
+        delete(category);
+    }
 
     @Query("DELETE FROM category_table")
     public abstract void deleteAll();

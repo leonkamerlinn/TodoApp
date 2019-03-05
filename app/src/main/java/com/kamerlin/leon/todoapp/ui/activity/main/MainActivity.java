@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
 import com.kamerlin.leon.todoapp.R;
 import com.kamerlin.leon.todoapp.databinding.ActivityMainBinding;
+import com.kamerlin.leon.todoapp.db.TodoRoomDatabase;
 import com.kamerlin.leon.todoapp.db.category.Category;
 import com.kamerlin.leon.todoapp.db.category.CategoryService;
 import com.kamerlin.leon.todoapp.db.task.Task;
@@ -73,6 +74,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         setupActionBarDrawerToggle();
         setupTaskListFragment(savedInstanceState);
         updateViews();
+
 
 
         binding.fab.setOnClickListener(v -> {
@@ -190,8 +192,10 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
             } else if(id == R.id.menu_due_date_oldest_first) {
                 viewModel.setSortBy(Task.Sort.DUE_DATE_INVERSE);
             }
-            invalidateOptionsMenu();
+
         }
+
+        invalidateOptionsMenu();
 
         // Activate the navigation drawer toggle
         if (mDrawerToggle.onOptionsItemSelected(item)) {
@@ -208,7 +212,8 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
                 .setTitle("Delete category: "+ viewModel.getSelectedCategory() + " ?")
                 .setMessage("If you delete this category, then all task will be deleted as well")
                 .setPositiveButton("Delete", (dialog1, which) -> {
-                    CategoryService.delete(this, viewModel.getSelectedCategory());
+                    String categoryName = viewModel.getSelectedCategory();
+                    CategoryService.delete(this, categoryName);
                     viewModel.setSelectedCategory(MainViewModel.INITIAL_CATEGORY);
                 })
                 .setNegativeButton("Cancel", null)
@@ -271,7 +276,7 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
         if (viewModel.getSelectedCategory() != null && viewModel.getSelectedCategory().equals("All")) {
             item.setVisible(false);
         } else {
-            item.setVisible(false);
+            item.setVisible(true);
         }
 
         Task.Sort sort = viewModel.getSort();

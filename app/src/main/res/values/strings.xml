@@ -2,7 +2,7 @@
     <string name="app_name">TodoApp</string>
     <string name="drawer_open">open</string>
     <string name="drawer_close">close</string>
-    <string name="welcome_in">Welcome in:</string>
+    <string name="welcome_in">Welcome</string>
     <string name="todo_app">Todo app</string>
     <string name="new_category">New category</string>
     <string name="settings">Settings</string>

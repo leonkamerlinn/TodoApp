@@ -14,6 +14,7 @@ import com.kamerlin.leon.todoapp.ui.MenuItemView;
 import com.kamerlin.leon.utils.materialpallete.MaterialColor;
 import com.kamerlin.leon.utils.materialpallete.MaterialColorFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class MenuAdapter extends ArrayAdapter<Category> {
 
     public MenuAdapter(@NonNull Context context, String selected) {
         super(context, 0);
-        mCategories = Collections.emptyList();
+        mCategories = new ArrayList<>();
         mDefaultSelected = selected;
         Activity activity = (Activity)context;
         if (activity instanceof ItemListener) {
@@ -37,7 +38,7 @@ public class MenuAdapter extends ArrayAdapter<Category> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        if (convertView == null) {
+
 
             MenuItemView menuItem = new MenuItemView(getContext());
             convertView = menuItem;
@@ -54,7 +55,7 @@ public class MenuAdapter extends ArrayAdapter<Category> {
             if (mItemListener != null) {
                 convertView.setOnClickListener(v -> mItemListener.onItemClick(v, position, category));
             }
-        }
+
 
         return convertView;
     }
@@ -65,7 +66,8 @@ public class MenuAdapter extends ArrayAdapter<Category> {
 
 
     public void setCategories(List<Category> categories) {
-        mCategories = categories;
+        mCategories.clear();
+        mCategories.addAll(categories);
         notifyDataSetInvalidated();
     }
 

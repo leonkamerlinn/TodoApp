@@ -12,6 +12,7 @@ import java.util.PrimitiveIterator;
 import javax.inject.Inject;
 
 import dagger.android.DaggerIntentService;
+import io.reactivex.schedulers.Schedulers;
 
 public class CategoryService extends DaggerIntentService {
 

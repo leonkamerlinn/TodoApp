@@ -40,10 +40,10 @@ import io.reactivex.schedulers.Schedulers;
  * The fact that this has very few comments emphasizes its coolness.
  */
 
-@Database(entities = {Category.class, Task.class}, version = 2)
+@Database(entities = {Category.class, Task.class}, version = 1)
 @TypeConverters(DateConverter.class)
 public abstract class TodoRoomDatabase extends RoomDatabase {
-    public static final String DATABASE_NAME = "todo_database4";
+    public static final String DATABASE_NAME = "todo_database";
 
     public abstract CategoryDao categoryDao();
     public abstract TaskDao taskDao();

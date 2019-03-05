@@ -215,6 +215,7 @@ public class MainViewModel extends ViewModel {
     public void setSelectedCategory(String category) {
         Task.Sort sort = getSort();
         mPairMutableLiveData.setValue(new Pair<>(category, sort));
+        setTitle(category);
     }
 
 
