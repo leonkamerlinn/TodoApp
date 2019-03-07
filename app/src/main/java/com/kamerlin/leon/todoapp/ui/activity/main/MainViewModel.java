@@ -73,7 +73,7 @@ public class MainViewModel extends ViewModel implements MainContract.Model {
 
     public LiveData<Boolean> getEnableDragItem() {
         return Transformations.map(mPairMutableLiveData, input -> {
-            if (input.first.equals(INITIAL_CATEGORY) && input.second.equals(Task.Sort.NONE)) return true;
+            if (input.second.equals(Task.Sort.NONE)) return true;
             return false;
         });
     }
