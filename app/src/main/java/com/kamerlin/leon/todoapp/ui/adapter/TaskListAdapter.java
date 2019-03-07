@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -25,6 +26,7 @@ import com.kamerlin.leon.utils.materialpallete.MaterialColor;
 import com.kamerlin.leon.utils.materialpallete.MaterialColorFactory;
 import com.kamerlin.leon.utils.mjolnir.MjolnirRecyclerAdapter;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +34,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import androidx.core.util.Pair;
+import androidx.recyclerview.widget.DiffUtil;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Predicate;
@@ -70,6 +73,7 @@ public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
             super.onItemDismiss(position);
         }
     }
+
 
 
 

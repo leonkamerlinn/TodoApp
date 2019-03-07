@@ -32,7 +32,7 @@ public abstract class TaskDao {
     @Transaction
     public abstract void update(Task task);
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insertAll(Task... tasks);
 
     @Query("DELETE FROM task_table")

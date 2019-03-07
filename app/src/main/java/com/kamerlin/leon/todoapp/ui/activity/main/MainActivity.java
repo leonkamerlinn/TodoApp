@@ -29,7 +29,9 @@ import com.kamerlin.leon.utils.dialog.MaterialPalettePickerFragmentDialog;
 import com.kamerlin.leon.utils.mjolnir.MjolnirRecyclerAdapter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -100,7 +102,8 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     private void updateViews() {
         viewModel.getCategories().observe(this, mMenuAdapter::setCategories);
         viewModel.getTasks().observe(this, tasks -> {
-           mTaskListAdapter.update(tasks, new TaskDiffUtilCallback(tasks, new ArrayList<>(mTaskListAdapter.getAll())));
+            //Set<Task> taskSet = new HashSet<>(tasks);
+            mTaskListAdapter.update(tasks, new TaskDiffUtilCallback(tasks, new ArrayList<>(mTaskListAdapter.getAll())));
 
 
         });

@@ -12,6 +12,7 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
@@ -35,6 +36,10 @@ import java.util.concurrent.TimeUnit;
                 childColumns = "task_category_name",
                 onDelete = ForeignKey.CASCADE
             )
+        },
+
+        indices = {
+                @Index(value = {"task_name"}, unique = true)
         }
 )
 public class Task implements Parcelable {
@@ -283,7 +288,6 @@ public class Task implements Parcelable {
     @Override
     public String toString() {
         return "Task{" +
-                "mId=" + mId +
                 ", mDueDate=" + mDueDate +
                 ", mName='" + mName + '\'' +
                 ", mDescription='" + mDescription + '\'' +
@@ -294,6 +298,12 @@ public class Task implements Parcelable {
                 ", mIsCompleted=" + mIsCompleted +
                 ", mCategoryName='" + mCategoryName + '\'' +
                 '}';
+    }
+
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
     }
 
     @Override
