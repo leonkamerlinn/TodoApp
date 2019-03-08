@@ -105,9 +105,7 @@ public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
                 .debounce(600, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(taskTaskPair -> {
-            TaskService.swapTask(activity, taskTaskPair.first, taskTaskPair.second);
-        });
+                .subscribe(taskTaskPair -> TaskService.swapTask(activity, taskTaskPair.first, taskTaskPair.second), System.err::println);
     }
 
     @Override
@@ -141,7 +139,7 @@ public class TaskListAdapter extends MjolnirRecyclerAdapter<Task> {
             mCategoryDao.getCategoryByNameSingle(task.getCategoryName()).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(category -> {
                 MaterialColor materialColor = MaterialColorFactory.getColor(category.getColorName());
                 setBackgroundColor(circleImageView, materialColor.get500());
-            });
+            }, System.err::println);
             MaterialColor materialColor = MaterialColorFactory.getColor(MaterialColor.DEEP_PURPLE);
 
             switch (task.getPriorityCode()) {

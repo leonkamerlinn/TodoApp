@@ -97,7 +97,7 @@ public class TaskViewModel extends ViewModel implements TaskContract.Model {
                 }
 
             }
-        });
+        }, System.err::println);
 
     }
 
@@ -211,7 +211,7 @@ public class TaskViewModel extends ViewModel implements TaskContract.Model {
                 .getCategoryByNameSingle(category)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::setCategory);
+                .subscribe(this::setCategory, System.err::println);
     }
 
 

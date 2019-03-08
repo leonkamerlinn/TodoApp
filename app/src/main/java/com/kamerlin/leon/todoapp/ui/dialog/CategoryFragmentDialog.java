@@ -58,11 +58,11 @@ public class CategoryFragmentDialog extends DaggerDialogFragmentCancelable {
         getPositiveButtonClickObservable().subscribe(aBoolean -> {
             mStringReplaySubject.onNext(mSelected);
             getDialog().dismiss();
-        });
+        }, System.err::println);
 
         getNegativeButtonClickObservable().subscribe(aBoolean -> {
             getDialog().dismiss();
-        });
+        }, System.err::println);
 
 
     }

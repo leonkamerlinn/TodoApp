@@ -3,6 +3,7 @@ package com.kamerlin.leon.todoapp.worker;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.widget.Toast;
 
 import com.kamerlin.leon.todoapp.db.TodoRoomDatabase;
 import com.kamerlin.leon.todoapp.db.task.Task;
@@ -40,7 +41,7 @@ public class ReminderWorker extends Worker {
                     NotificationUtil.createNotification(data.getString(Task.TITLE_TAG), data.getString(Task.DESCRIPTION_TAG), getApplicationContext());
                     task.setIsScheduled(true);
                     TaskService.update(getApplicationContext(), task);
-                });
+                }, System.err::println);
         return Worker.Result.success();
     }
 }

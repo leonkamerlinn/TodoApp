@@ -85,11 +85,11 @@ public class PriorityFragmentDialog extends DaggerDialogFragmentCancelable {
         getPositiveButtonClickObservable().subscribe(aBoolean -> {
             mStringReplaySubject.onNext(new Pair<>(mSelected, getData().get(mSelected)));
             getDialog().dismiss();
-        });
+        }, System.err::println);
 
         getNegativeButtonClickObservable().subscribe(aBoolean -> {
             getDialog().dismiss();
-        });
+        }, System.err::println);
     }
 
     public Observable<Pair<String, Integer>> getSelectedObservable() {

@@ -38,7 +38,7 @@ public class ServiceStarter extends DaggerBroadcastReceiver {
                             task.scheduleReminder();
                         }
                     }
-                });
+                }, System.err::println);
 
 
 

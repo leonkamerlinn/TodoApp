@@ -103,11 +103,11 @@ public class ReminderFragmentDialog extends DaggerDialogFragmentCancelable {
         getPositiveButtonClickObservable().subscribe(aBoolean -> {
             mStringReplaySubject.onNext(new Pair<>(mSelected, getData().get(mSelected)));
             getDialog().dismiss();
-        });
+        }, System.err::println);
 
         getNegativeButtonClickObservable().subscribe(aBoolean -> {
             getDialog().dismiss();
-        });
+        }, System.err::println);
     }
 
 

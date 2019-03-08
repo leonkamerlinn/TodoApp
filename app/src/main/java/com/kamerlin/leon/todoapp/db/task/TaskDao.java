@@ -1,7 +1,6 @@
 package com.kamerlin.leon.todoapp.db.task;
 
 
-import com.kamerlin.leon.todoapp.ui.dialog.ReminderFragmentDialog;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -78,15 +77,6 @@ public abstract class TaskDao {
     }
 
 
-
-    @Query("SELECT * FROM task_table")
-    public abstract Observable<List<Task>> getTasksObservable();
-
-    @Query("SELECT * FROM task_table WHERE task_category_name = :categoryName")
-    public abstract Observable<List<Task>> getCategoryTasksObservable(String categoryName);
-
-    @Query("SELECT * FROM task_table WHERE created_at = :createdAt")
-    public abstract Single<Task> getTaskByCreationSingle(long createdAt);
 
 
 
@@ -169,6 +159,15 @@ public abstract class TaskDao {
 
 
 
+
+    @Query("SELECT * FROM task_table")
+    public abstract Observable<List<Task>> getTasksObservable();
+
+    @Query("SELECT * FROM task_table WHERE task_category_name = :categoryName")
+    public abstract Observable<List<Task>> getCategoryTasksObservable(String categoryName);
+
+    @Query("SELECT * FROM task_table WHERE created_at = :createdAt")
+    public abstract Single<Task> getTaskByCreationSingle(long createdAt);
 
 
 

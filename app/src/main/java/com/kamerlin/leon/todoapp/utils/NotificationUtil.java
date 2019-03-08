@@ -40,6 +40,8 @@ public class NotificationUtil {
             notifyManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel mChannel = notifyManager.getNotificationChannel(id);
             if (mChannel == null) {
@@ -48,6 +50,8 @@ public class NotificationUtil {
                 mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
                 notifyManager.createNotificationChannel(mChannel);
             }
+
+
             builder = new NotificationCompat.Builder(context, id);
             intent = new Intent(context, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -61,7 +65,11 @@ public class NotificationUtil {
                     .setTicker(title)
                     .addAction(0, context.getResources().getString(R.string.mark_as_done), pendingIntent)
                     .setVibrate(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+
+
         } else {
+
+
             builder = new NotificationCompat.Builder(context, id);
             intent = new Intent(context, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -76,7 +84,11 @@ public class NotificationUtil {
                     .setVibrate(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400})
                     .addAction(0, context.getResources().getString(R.string.mark_as_done), pendingIntent)
                     .setPriority(Notification.PRIORITY_HIGH);
+
+
         }
+
+
         Notification notification = builder.build();
         notifyManager.notify(NOTIFY_ID, notification);
     }

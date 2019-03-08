@@ -74,9 +74,9 @@ public class TaskActivity extends DaggerAppCompatActivity implements TaskContrac
         viewModel.getCategories().observe(this, categoryDialog::setCategories);
         viewModel.getCategory().observe(this, categoryDialog::setSelectedCategory);
 
-        reminderDialog.getSelectedObservable().subscribe(viewModel::setReminderValue);
-        priorityDialog.getSelectedObservable().subscribe(viewModel::setPriorityValue);
-        categoryDialog.getSelectedObservable().subscribe(viewModel::setCategoryByNameAsync);
+        reminderDialog.getSelectedObservable().subscribe(viewModel::setReminderValue, System.err::println);
+        priorityDialog.getSelectedObservable().subscribe(viewModel::setPriorityValue, System.err::println);
+        categoryDialog.getSelectedObservable().subscribe(viewModel::setCategoryByNameAsync, System.err::println);
 
 
 

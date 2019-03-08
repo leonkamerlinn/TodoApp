@@ -44,7 +44,7 @@ public class TaskCleanerWorker extends Worker {
 
 
                     }
-                });
+                }, System.err::println);
         return Result.success();
     }
 }

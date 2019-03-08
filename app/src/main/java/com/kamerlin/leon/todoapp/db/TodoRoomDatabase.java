@@ -16,6 +16,7 @@ package com.kamerlin.leon.todoapp.db;
  * limitations under the License.
  */
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -43,7 +44,7 @@ import io.reactivex.schedulers.Schedulers;
 @Database(entities = {Category.class, Task.class}, version = 1)
 @TypeConverters(DateConverter.class)
 public abstract class TodoRoomDatabase extends RoomDatabase {
-    public static final String DATABASE_NAME = "todo_database";
+    public static final String DATABASE_NAME = TodoRoomDatabase.class.getSimpleName();
 
     public abstract CategoryDao categoryDao();
     public abstract TaskDao taskDao();
@@ -59,7 +60,7 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
                             // Wipes and rebuilds instead of migrating if no Migration object.
                             // Migration is not part of this codelab.
                             //.fallbackToDestructiveMigration()
-                            .allowMainThreadQueries()
+                            //.allowMainThreadQueries()
                             .addCallback(sRoomDatabaseCallback)
                             //.addMigrations(MIGRATION_1_2)
                             .build();
@@ -76,6 +77,7 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
         }
     };
 
+    @SuppressLint("CheckResult")
     private static void populateDatabase() {
         Observable.fromCallable(() -> {
 
@@ -87,7 +89,7 @@ public abstract class TodoRoomDatabase extends RoomDatabase {
             return true;
         })
                 .subscribeOn(Schedulers.io())
-                .subscribe();
+                .subscribe(System.out::println, System.err::println);
     }
 
     /**

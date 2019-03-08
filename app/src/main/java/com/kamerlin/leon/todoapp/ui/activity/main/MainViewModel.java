@@ -196,7 +196,7 @@ public class MainViewModel extends ViewModel implements MainContract.Model {
                             } else {
                                 mView.showDialogErrorMessage("This category already exist");
                             }
-                        });
+                        }, System.err::println);
 
             } else {
                 mView.showDialogErrorMessage("Field is required");

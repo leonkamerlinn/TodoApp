@@ -265,14 +265,14 @@ public class MainActivity extends DaggerAppCompatActivity implements NavigationF
     private void showMaterialColorPicker() {
         // show material color picker
 
-        mMaterialPalettePickerDialog.getColorNameObservable().subscribe(viewModel::setColorName);
-        mMaterialPalettePickerDialog.getTitleObservable().subscribe(viewModel::setNewCategory);
+        mMaterialPalettePickerDialog.getColorNameObservable().subscribe(viewModel::setColorName, System.err::println);
+        mMaterialPalettePickerDialog.getTitleObservable().subscribe(viewModel::setNewCategory, System.err::println);
         mMaterialPalettePickerDialog.getTextInputEditTextObservable().subscribe(textInputEditText -> {
             mTextInputEditText = textInputEditText;
             mTextInputEditText.setHint("Enter category name");
-        });
-        mMaterialPalettePickerDialog.getPositiveButtonClickObservable().subscribe(aBoolean -> model.createNewCategory());
-        mMaterialPalettePickerDialog.getNegativeButtonClickObservable().subscribe(aBoolean -> mMaterialPalettePickerDialog.dismiss());
+        }, System.err::println);
+        mMaterialPalettePickerDialog.getPositiveButtonClickObservable().subscribe(aBoolean -> model.createNewCategory(), System.err::println);
+        mMaterialPalettePickerDialog.getNegativeButtonClickObservable().subscribe(aBoolean -> mMaterialPalettePickerDialog.dismiss(), System.err::println);
 
         mMaterialPalettePickerDialog.show(getSupportFragmentManager(), MaterialPalettePickerFragmentDialog.TAG);
 
